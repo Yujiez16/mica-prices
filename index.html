@@ -1,0 +1,2216 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<script>window.MICA_STATIC = 1;</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MICA 价格监控</title>
+<link rel="icon" href="data:,">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10); --hover: rgba(11,11,11,0.04);
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --ref: #898781;
+  --good: #006300; --good-bg: rgba(12,163,12,0.10); --bad: #d03b3b; --bad-bg: rgba(208,59,59,0.09);
+  --warn: #8a5a00; --warn-bg: rgba(250,178,25,0.16); --accent: #2a78d6; --accent-bg: rgba(42,120,214,0.10);
+  --field: #ffffff;
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --c5: #e87ba4; --c6: #008300; --c7: #6250d6; --c8: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --hover: rgba(255,255,255,0.05);
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --ref: #898781;
+    --good: #0ca30c; --good-bg: rgba(12,163,12,0.16); --bad: #e66767; --bad-bg: rgba(208,59,59,0.18);
+    --warn: #fab219; --warn-bg: rgba(250,178,25,0.14); --accent: #3987e5; --accent-bg: rgba(57,135,229,0.16);
+    --field: #222220;
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181; --c6: #008300; --c7: #9085e9; --c8: #e66767;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 16px 80px; }
+.top { position: sticky; top: 0; z-index: 20; background: var(--page); border-bottom: 1px solid var(--grid); }
+.top .wrap { display: flex; align-items: center; gap: 24px; padding-top: 12px; padding-bottom: 0; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 17px; padding-bottom: 12px; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { border: 0; background: none; font: inherit; font-size: 14.5px; color: var(--ink-2); padding: 8px 14px 12px; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+.qs { position: relative; flex: 1; min-width: 180px; max-width: 360px; margin-left: auto; padding-bottom: 10px; }
+.qs input { width: 100%; padding: 6px 10px; }
+.qspanel { position: absolute; top: 100%; right: 0; width: min(900px, calc(100vw - 32px)); max-height: 76vh; overflow: auto; z-index: 45;
+  background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,.28); padding: 12px; }
+.qshead { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 4px 10px; }
+.qschip { font-size: 12.5px; padding: 1px 9px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.btnchip { border: 0; cursor: pointer; font: inherit; font-size: 12.5px; }
+.qsgroup { border: 1px solid var(--ring); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.qsg-h { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-bottom: 6px; }
+.qsg-h b { font-size: 15px; }
+.qstbl td, .qstbl th { padding: 5px 8px; }
+.qstbl td.qscell { cursor: pointer; border-radius: 6px; }
+.qstbl td.qscell:hover, .qstbl td.qscell:focus { background: var(--hover); outline: none; }
+.qstbl td.qscell b { font-size: 14.5px; font-variant-numeric: tabular-nums; }
+.qstbl td.qscell small { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.qstbl td.bempty { color: var(--grid); }
+.status { margin-left: 12px; color: var(--muted); font-size: 12.5px; padding-bottom: 12px; }
+section[hidden] { display: none !important; }
+section { padding-top: 20px; }
+h2 { font-size: 16px; margin: 0 0 4px; }
+h3 { font-size: 14px; margin: 0 0 8px; color: var(--ink-2); font-weight: 600; }
+.hint { color: var(--muted); font-size: 12.5px; margin: 0 0 12px; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+.btn { font: inherit; font-size: 13.5px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--axis); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.danger { color: var(--bad); border-color: var(--bad); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+select, input, textarea { font: inherit; font-size: 13.5px; color: var(--ink); background: var(--field);
+  border: 1px solid var(--axis); border-radius: 8px; padding: 6px 9px; }
+textarea { width: 100%; min-height: 180px; resize: vertical; font-family: ui-monospace, Consolas, "Microsoft YaHei", monospace; font-size: 13px; }
+select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.steps { display: grid; gap: 16px; }
+.step-n { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--page);
+  align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin-right: 8px; }
+.srcgrid { display: grid; gap: 10px; }
+.srcrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.srcrow .g { width: 64px; color: var(--muted); font-size: 12.5px; }
+.chip { border: 1px solid var(--axis); background: var(--surface); color: var(--ink); border-radius: 10px; padding: 7px 12px; cursor: pointer; text-align: left; font: inherit; }
+.chip small { display: block; color: var(--muted); font-size: 11.5px; }
+.chip:hover { background: var(--hover); }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent); }
+.drop { position: relative; }
+.drop.over textarea { outline: 2px dashed var(--accent); }
+.filechip { display: none; align-items: center; gap: 10px; padding: 12px 14px; border: 1px dashed var(--axis); border-radius: 10px; margin-top: 8px; }
+.filechip.on { display: flex; }
+.filechip b { font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+.row label { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; }
+.how { font-size: 12.5px; color: var(--ink-2); background: var(--hover); border-radius: 8px; padding: 10px 12px; margin: 8px 0 0; }
+.how b { color: var(--ink); }
+.summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.tag { display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+.tag.ok { color: var(--good); background: var(--good-bg); }
+.tag.err { color: var(--bad); background: var(--bad-bg); }
+.tag.check { color: var(--warn); background: var(--warn-bg); }
+.tag.dup { color: var(--ink-2); background: var(--hover); }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap; vertical-align: middle; }
+th { color: var(--ink-2); font-weight: 500; font-size: 12.5px; background: var(--surface); position: sticky; top: 0; z-index: 1; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pv input, .pv select { padding: 4px 6px; font-size: 13px; }
+.pv input.w-model { width: 165px; } .pv input.w-gb { width: 62px; } .pv input.w-ver { width: 76px; } .pv input.w-grade { width: 70px; }
+.pv input.w-color { width: 96px; }
+.pv input.w-qty { width: 54px; text-align: right; } .pv input.w-price { width: 80px; text-align: right; } .pv input.w-date { width: 128px; }
+.pv tr.err td { background: var(--bad-bg); }
+.pv tr.check td { background: var(--warn-bg); }
+.pv tr.dup td { color: var(--muted); }
+.pv td.raw { color: var(--muted); max-width: 320px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+.pv td.msg { font-size: 12px; min-width: 150px; max-width: 230px; white-space: normal; }
+.pv tr.err td.msg { color: var(--bad); }
+.pv tr.check td.msg { color: var(--warn); }
+.savebar { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--grid); padding: 12px 0 2px; margin-top: 8px;
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: var(--ink); color: var(--page); padding: 10px 18px;
+  border-radius: 10px; font-size: 14px; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,.25); display: none; max-width: 90vw; }
+.toast.bad { background: var(--bad); color: #fff; }
+.empty { color: var(--muted); padding: 24px 0; text-align: center; }
+/* dashboard */
+.filters { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; padding: 0 0 16px; margin-bottom: 16px; border-bottom: 1px solid var(--grid); }
+.filters label { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--ink-2); padding: 5px 11px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--axis); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--page); }
+.filters input[type=number] { width: 64px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 14px 16px; }
+.tile .k { color: var(--ink-2); font-size: 12.5px; }
+.tile .v { font-size: 26px; font-weight: 600; margin-top: 2px; }
+.tile .d { color: var(--muted); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notice { border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; background: var(--warn-bg); }
+.notice b { color: var(--warn); }
+.notice a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+th.sort { cursor: pointer; user-select: none; } th.sort:hover { color: var(--ink); }
+tbody tr.click { cursor: pointer; }
+tbody tr.click:hover, tbody tr.sel { background: var(--hover); }
+tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pill.good { color: var(--good); background: var(--good-bg); } .pill.bad { color: var(--bad); background: var(--bad-bg); } .pill.flat { color: var(--ink-2); }
+.flag { color: var(--muted); font-size: 12px; }
+.mk { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.row2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+@media (min-width: 980px) { .row2 { grid-template-columns: 1.6fr 1fr; } }
+.chart-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 16px; height: 2px; border-radius: 1px; }
+.legend i.dot { width: 8px; height: 8px; border-radius: 50%; background: transparent !important; border: 2px solid var(--ref); }
+#chart { position: relative; min-height: 120px; }
+#chart svg { display: block; width: 100%; overflow: visible; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--ring);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; min-width: 170px; display: none; z-index: 3; }
+.tip .t { color: var(--ink-2); margin-bottom: 4px; }
+.tip .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .r b { font-variant-numeric: tabular-nums; }
+.tip .r .l { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.tip .r .l i { width: 12px; height: 2px; display: inline-block; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 13px; margin-top: 10px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-bottom: 10px; }
+.toolbar .grow { flex: 1; }
+.scroll { max-height: 560px; overflow: auto; }
+.shots { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.shot { position: relative; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; width: 190px; background: var(--hover); }
+.shot img { display: block; width: 100%; height: 110px; object-fit: cover; object-position: top left; }
+.shot .n { position: absolute; left: 6px; top: 6px; background: var(--ink); color: var(--page); font-size: 12px; border-radius: 6px; padding: 0 7px; font-weight: 600; }
+.shot button { position: absolute; right: 6px; top: 6px; padding: 2px 8px; font-size: 12px; }
+.shotnote { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+.pvgrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.shotview { order: -1; max-height: 340px; overflow: auto; border: 1px solid var(--ring); border-radius: 8px; padding: 8px; }
+.shotview img { width: 100%; border-radius: 6px; cursor: zoom-in; display: block; }
+@media (min-width: 1720px) {  /* wide screens: screenshot beside the table */
+  .wrap { max-width: 1680px; }
+  .pvgrid.has-img { grid-template-columns: minmax(0, 1fr) 380px; }
+  .shotview { order: 0; position: sticky; top: 64px; align-self: start; max-height: none; border: 0; padding: 0; }
+}
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 60; overflow: auto; display: none; cursor: zoom-out; padding: 20px; }
+.modal img { max-width: none; display: block; margin: 0 auto; }
+.pv tr.cur td { box-shadow: inset 0 1px 0 var(--accent), inset 0 -1px 0 var(--accent); }
+.pv td.imgn { color: var(--muted); text-align: center; }
+.boardwrap { max-height: 70vh; }
+table.board td, table.board th { padding: 6px 10px; }
+table.board th { text-align: right; } table.board th:nth-child(-n+2) { text-align: left; }
+table.board tr.bfirst td { border-top: 1px solid var(--axis); }
+table.board td.bmodel { font-weight: 600; position: sticky; left: 0; background: var(--surface); }
+table.board td.bcell { cursor: pointer; border-radius: 6px; }
+table.board td.bcell:hover, table.board td.bcell:focus { background: var(--hover); outline: none; }
+table.board td.bcell.on { background: var(--accent-bg); box-shadow: inset 0 0 0 1px var(--accent); }
+table.board .bv { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+table.board .bchg { font-size: 11.5px; font-weight: 500; color: var(--ink-2); }
+table.board .bs { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+table.board td.bempty { color: var(--grid); }
+.lockbadge { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 0 7px; border-radius: 999px; vertical-align: 1px; }
+.lockbadge.ul { background: var(--hover); color: var(--ink-2); }
+.lockbadge.lk { background: var(--warn-bg); color: var(--warn); }
+.btn.mini { padding: 2px 9px; font-size: 12px; }
+.howto { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+.howto ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 6px; } .howto b { color: var(--ink); }
+.howto code { background: var(--hover); padding: 0 4px; border-radius: 4px; }
+.sharebox { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--hover); font-size: 13.5px; }
+.sharebox code { font-size: 15px; font-weight: 600; user-select: all; }
+.sharebox .u { display: flex; gap: 8px; align-items: center; margin: 4px 0; flex-wrap: wrap; }
+.gatewrap { position: fixed; inset: 0; z-index: 80; background: var(--page); display: grid; place-items: center; padding: 16px; }
+.gate { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; padding: 24px; width: 100%; max-width: 340px; display: grid; gap: 10px; }
+.gate h1 { font-size: 18px; margin: 0; } .gate p { color: var(--ink-2); font-size: 13px; margin: 0 0 4px; }
+.gate .keep { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; }
+.gate .err { color: var(--bad); font-size: 13px; min-height: 1em; }
+.rolebadge { margin-left: 8px; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.rolebadge a { color: inherit; margin-left: 6px; }
+body.ro .ro-hide, body.lan .lan-hide { display: none !important; }
+.restart { position: sticky; top: 0; z-index: 40; background: var(--warn-bg); color: var(--ink); padding: 10px 16px; font-size: 14px;
+  border-bottom: 1px solid var(--warn); text-align: center; backdrop-filter: blur(6px); }
+.restart b { color: var(--warn); }
+#obsTbl tr.editing td { background: var(--accent-bg); }
+#obsTbl input, #obsTbl select { padding: 3px 6px; font-size: 12.5px; }
+#obsTbl input.w-model { width: 130px; } #obsTbl input.w-gb { width: 64px; } #obsTbl input.w-ver { width: 70px; }
+#obsTbl input.w-qty { width: 54px; text-align: right; } #obsTbl input.w-price { width: 76px; text-align: right; } #obsTbl input.w-date { width: 130px; }
+.gcell { display: flex; flex-direction: column; gap: 1px; }
+.gcell small { color: var(--muted); font-size: 11px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+pre.ocr { white-space: pre; overflow: auto; max-height: 320px; font-size: 12px; background: var(--hover); padding: 10px; border-radius: 8px; }
+.provs { display: grid; gap: 8px; margin-bottom: 14px; }
+.prov { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--axis); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.prov:has(input:checked) { border-color: var(--accent); background: var(--accent-bg); }
+.prov input { margin-top: 4px; }
+.prov small { display: block; color: var(--muted); }
+.ocrform input { width: 100%; max-width: 420px; text-align: left; }
+.form { display: grid; grid-template-columns: minmax(180px, 260px) 160px 1fr; gap: 10px 16px; align-items: center; }
+.form .lab { font-weight: 500; }
+.form .unit { display: flex; align-items: center; gap: 6px; }
+.form input { width: 110px; text-align: right; }
+.form .h { color: var(--muted); font-size: 12.5px; }
+@media (max-width: 700px) { .form { grid-template-columns: 1fr; } .form .h { margin-bottom: 8px; } }
+/* price charts */
+.clines { display: grid; gap: 8px; }
+.csplit { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--ink-2); font-size: 13px; }
+.tabs { overflow-x: auto; max-width: 100%; }
+.tabs button { white-space: nowrap; }
+.cline { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--ring); border-radius: 10px; }
+.csels { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0; }
+.cside { display: flex; gap: 6px; align-items: center; flex: none; min-height: 32px; }
+@media (max-width: 700px) { .cline { flex-wrap: wrap; } .cside { width: 100%; justify-content: flex-end; } }
+.cline select { max-width: 180px; padding: 5px 7px; font-size: 13px; color: var(--ink-2); }
+.cline select.on { color: var(--ink); border-color: var(--ink-2); font-weight: 500; }
+.cline .btn { padding: 4px 10px; font-size: 12.5px; }
+.ckey { width: 18px; height: 4px; border-radius: 2px; flex: none; margin: 14px 2px 0 0; }
+.cn { color: var(--ink-2); font-size: 12.5px; margin-right: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cn.zero { color: var(--warn); }
+.cchart { position: relative; min-height: 120px; }
+.cchart svg { display: block; width: 100%; overflow: visible; }
+.cchart svg:focus, .cchart g:focus { outline: none; }
+.cchart g.cbar.hov rect:first-of-type, .cchart g.cbar:focus rect:first-of-type { opacity: 0.4; }
+.cchart g.cbar.hov circle, .cchart g.cbar:focus circle { r: 7; }
+.tnum { font-variant-numeric: tabular-nums; }
+#cTip { max-width: 380px; }
+#cTip .r { justify-content: flex-start; gap: 10px; }
+#cTip .r b { min-width: 64px; }
+.pill.up, .pill.down { color: var(--ink); background: var(--hover); }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <div class="brand">MICA 价格监控</div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="entry" class="ro-hide">录入报价</button>
+      <button role="tab" data-tab="dash">看板</button>
+      <button role="tab" data-tab="board">价格速查</button>
+      <button role="tab" data-tab="chart">价格图表</button>
+      <button role="tab" data-tab="records">全部记录</button>
+      <button role="tab" data-tab="settings" class="lan-hide">设置</button>
+    </nav>
+    <div class="qs">
+      <input id="qsIn" type="search" autocomplete="off" placeholder="查价格：15pm 256、17p a 美版…（按 / ）" aria-label="快速查价格">
+      <div id="qsPanel" class="qspanel" hidden></div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<div class="wrap">
+<!-- ============================== ENTRY ============================== -->
+<section id="tab-entry" hidden>
+  <div class="card steps">
+    <div>
+      <h2><span class="step-n">1</span>这批价格是从哪来的？</h2>
+      <div class="srcgrid" id="srcGrid"></div>
+    </div>
+    <div>
+      <h2><span class="step-n">2</span>把报价放进来</h2>
+      <p class="hint"><b>截图</b>：按 Win+Shift+S 截图，然后在这个页面按 Ctrl+V，可以连续粘贴好几张。也可以粘贴文字、从 Excel 复制表格，或者把文件拖进来（截图图片、WhatsApp 导出的 .txt / .zip、Excel、CSV、网页）。</p>
+      <div class="drop" id="drop">
+        <textarea id="txt" placeholder="在这里按 Ctrl+V 粘贴报价……&#10;&#10;例如：&#10;*US SPEC UNLOCKED*&#10;15PM 256 A 560&#10;16 Pro 128/256 B 520/580"></textarea>
+        <div class="filechip" id="fileChip"><span>📄</span><b id="fileName"></b><span class="hint" style="margin:0" id="fileSize"></span>
+          <span style="flex:1"></span><button class="btn" id="fileClear">移除文件</button></div>
+      </div>
+      <div class="shots" id="shots"></div>
+      <div class="shotnote" id="shotNote" hidden></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="pickFile">选择文件…</button>
+        <input type="file" id="fileInput" accept="image/*,.txt,.zip,.xlsx,.xlsm,.csv,.html,.htm" multiple hidden>
+      </div>
+      <div class="how"><b>截图小技巧：</b>截图前按 Ctrl+减号把网页缩小一点，一张能截更多行；截图里尽量带上表头和两个以上的价格列（比如 HKD 和 USD），程序会用它们互相核对，抓出识别错的数字。表太长就分几张截，后面几张没截到表头也没关系。
+        <br><b>腾讯文档（能复制时）：</b>打开表格 → 点左上角空白格（或 Ctrl+A）全选 → Ctrl+C 复制 → 回到这里 Ctrl+V。表头（型号、容量、成色、价格……）一起复制效果最好。
+        <br><b>WhatsApp：</b>手机里导出聊天（不含媒体）发到电脑，把文件拖进来；也可以直接复制几条消息粘贴。</div>
+    </div>
+    <div>
+      <h2><span class="step-n">3</span>报价里没写的，用这些默认值 <span class="hint">（写了的以报价为准）</span></h2>
+      <div class="row">
+        <label>版本 <input id="dRegion" list="verList" placeholder="不指定，如 US 或 LL/A" style="width:170px"></label>
+        <label>币种 <select id="dCur"><option value="">不指定（默认美元）</option><option>USD</option><option>HKD</option><option value="CNY">人民币 CNY</option><option>AED</option><option>CAD</option></select></label>
+        <label>锁 <select id="dLock"><option value="">不指定（默认无锁）</option><option value="UL">无锁</option><option value="LK">有锁</option></select></label>
+        <label>成色 <select id="dGrade"><option value="">不指定</option><option>A+</option><option>A</option><option>B</option><option>C</option><option>D</option><option value="SEALED">全新未拆</option><option value="ACTIVATED">已激活</option></select></label>
+        <label>报价日期 <input type="date" id="dDate"></label>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="parseBtn">识别报价</button>
+      <button class="btn" id="manualBtn" title="不用截图，也不用 Strata：在下面的表格里一格一格填">手动录入一条</button>
+      <span class="hint" style="margin:0" id="parseInfo"></span>
+    </div>
+  </div>
+
+  <div class="card" id="pvCard" hidden>
+    <div class="toolbar">
+      <h2 style="margin:0">识别结果</h2><span class="grow"></span>
+      <label class="hint" style="margin:0;display:flex;gap:6px;align-items:center"><input type="checkbox" id="onlyBad"> 只看需要处理的</label>
+    </div>
+    <p class="hint">每一行都可以直接改。改完会自动重新检查；红色的行改对了会自动勾上。灰色的是以前已经保存过的，不会重复保存。</p>
+    <div class="summary" id="pvSummary"></div>
+    <div class="row bulk" style="margin:8px 0;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="hint" style="margin:0">把<b>勾选的行</b>一起改成：</span>
+      <select id="bLock" aria-label="锁"><option value="">锁不变</option><option value="UL">无锁</option><option value="LK">有锁</option></select>
+      <input id="bVer" list="verList" placeholder="版本不变" style="width:110px" aria-label="版本">
+      <select id="bGrade" aria-label="成色"><option value="">成色不变</option><option>A+</option><option>A</option><option>B</option><option>C</option><option>D</option><option value="SEALED">全新未拆</option><option value="ACTIVATED">已激活</option><option value="DEFECT">有故障</option></select>
+      <select id="bCur" aria-label="币种"><option value="">币种不变</option><option>USD</option><option>HKD</option><option value="CNY">人民币 CNY</option><option>AED</option><option>CAD</option></select>
+      <button class="btn" id="bApply">应用</button>
+    </div>
+    <div class="pvgrid" id="pvGrid">
+      <div class="tablewrap scroll"><table class="pv" id="pvTbl"></table></div>
+      <div class="shotview" id="shotView" hidden><div class="hint" id="shotLabel" style="margin:0 0 6px"></div><img id="shotImg" alt="原截图"></div>
+    </div>
+    <details id="ocrBox" hidden><summary>查看识别出的原始文字</summary><pre class="ocr" id="ocrText"></pre></details>
+    <div class="savebar">
+      <button class="btn primary" id="saveBtn">保存</button>
+      <button class="btn" id="pvClear">清空，重新录入</button>
+      <span class="hint" style="margin:0">没勾选的红色行会记到「全部记录 → 没认出来的报价行」，方便以后发给 Claude 调规则。</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== DASHBOARD ============================== -->
+<section id="tab-dash" hidden>
+  <div class="filters" role="group" aria-label="筛选">
+    <label>时间范围 <span class="seg" id="range"></span></label>
+    <label>型号 <select id="fModel"><option value="">全部</option></select></label>
+    <label>成色 <select id="fGrade"><option value="">全部</option></select></label>
+    <label>价差超过 <input type="number" id="fAlert" value="8" min="0" step="1">% 标绿</label>
+  </div>
+  <div id="notices"></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="card">
+    <h2>赚钱机会：北美买入 vs 香港 / 迪拜卖出</h2>
+    <p class="hint">同一型号、容量、SIM、锁状态、成色才放在一起比。成本 = 北美最低到港成本；到手 = 香港/迪拜最高出价扣掉费用后的实际到手；全部为每台美元（FCA 香港口径）。点一行看它的价格走势。</p>
+    <div class="tablewrap"><table id="spreadTbl"></table></div>
+    <div class="empty" id="spreadEmpty" hidden>这个时间范围里还没有同一口径的买入和卖出价格。北美买入和香港/迪拜卖出两边都录入后，这里会出现结果。</div>
+  </div>
+  <div class="row2">
+    <div class="card">
+      <div class="chart-head">
+        <div><h2 id="chartTitle">价格走势</h2><div class="hint" style="margin:0">每台美元（FCA 香港口径），每天取成本最低、出价最高的一条</div></div>
+        <div class="row" style="gap:8px"><select id="fKey" aria-label="选择型号口径"></select>
+        <button class="btn" id="fKeyOpen" title="在「价格图表」里打开，可以加线、换时间、导出">放大看 →</button></div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div id="chart"><div class="tip" id="tip"></div></div>
+      <details><summary>查看图表数据</summary><div class="tablewrap"><table id="chartTbl"></table></div></details>
+    </div>
+    <div class="card">
+      <h2 id="ladderTitle">各成色价格对比</h2>
+      <p class="hint">同一型号和容量，时间范围内各市场的最好价格</p>
+      <div class="tablewrap"><table id="ladderTbl"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PRICE BOARD ============================== -->
+<section id="tab-board" hidden>
+  <div class="filters" role="group" aria-label="价格速查筛选">
+    <label>时间 <span class="seg" id="bRange"></span></label>
+    <label>来源 <select id="bSrc"></select></label>
+    <label>版本 <select id="bVg"></select></label>
+    <label>锁 <select id="bdLock"><option value="">全部</option><option value="UL">无锁</option><option value="LK">有锁</option></select></label>
+    <label>每格显示 <select id="bStat"><option value="med">中位数</option><option value="min">最低</option><option value="max">最高</option><option value="last">最新一条</option></select></label>
+    <label>价格 <select id="bMetric"><option value="usd">美元单价</option><option value="fca">到港美元（含费用）</option></select></label>
+    <label>找型号 <input id="bQ" type="search" placeholder="如 15 Pro、256" style="width:130px"></label>
+  </div>
+  <div class="card">
+    <h2>价格速查</h2>
+    <p class="hint" id="bHint"></p>
+    <div class="tablewrap scroll boardwrap"><table id="bTbl" class="board"></table></div>
+  </div>
+  <div class="card" id="bDetail" hidden></div>
+</section>
+
+<!-- ============================== CHARTS ============================== -->
+<section id="tab-chart" hidden>
+  <div class="filters" role="group" aria-label="图表设置">
+    <label>时间范围 <span class="seg" id="cRange"></span></label>
+    <label>从 <input type="date" id="cFrom" aria-label="开始日期"></label>
+    <label>到 <input type="date" id="cTo" aria-label="结束日期"></label>
+    <label>价格 <select id="cMetric">
+      <option value="usd">美元单价（报价换成美元）</option>
+      <option value="fca">到港美元（含运费、佣金等费用）</option>
+    </select></label>
+    <label><span id="cAggLab">每天取</span> <select id="cAgg">
+      <option value="avg">平均</option><option value="min">最低</option><option value="max">最高</option>
+      <option value="med">中位数</option><option value="last">最新一条</option>
+    </select></label>
+    <label>图形 <span class="seg" id="cType"></span></label>
+    <label id="cPtsLab"><input type="checkbox" id="cPts"> 显示每一条报价</label>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <div><h2 style="margin:0">画哪些线</h2><div class="hint" style="margin:0">每条线是一组筛选条件，「全部」表示不限。每个选项后面的数字是这段时间里有多少条报价。</div></div>
+      <span class="grow"></span>
+      <select id="cViews" aria-label="我保存的图"><option value="">我保存的图…</option></select>
+      <button class="btn ro-hide" id="cViewDel" hidden>删除这个图</button>
+      <button class="btn ro-hide" id="cViewSave">保存这个图</button>
+    </div>
+    <div class="clines" id="cLines"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="cAdd">+ 添加一条线</button>
+      <span class="hint" style="margin:0">或者</span>
+      <span class="csplit">把 <select id="cSplitLine" aria-label="要拆开的线"></select> 按
+        <select id="cSplitDim" aria-label="拆开的方式">
+          <option value="src">来源</option><option value="grp">市场（北美 / 香港 / 迪拜）</option><option value="model">型号</option>
+          <option value="gb">容量</option><option value="grade">成色</option><option value="vg">版本</option>
+          <option value="lock">有锁 / 无锁</option><option value="color">颜色</option>
+        </select> 拆成几条线</span>
+      <button class="btn" id="cSplit">拆开</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="chart-head">
+      <div><h2 id="cTitle">价格走势</h2><div class="hint" style="margin:0" id="cSub"></div></div>
+      <button class="btn" id="cCsv">导出图表数据</button>
+    </div>
+    <div class="legend" id="cLegend"></div>
+    <div id="cChart" class="cchart"><div class="tip" id="cTip"></div></div>
+    <h3 style="margin-top:18px">每条线的汇总</h3>
+    <div class="tablewrap"><table id="cSum"></table></div>
+    <details><summary>查看每天的数据</summary><div class="tablewrap scroll"><table id="cData"></table></div></details>
+  </div>
+</section>
+
+<!-- ============================== RECORDS ============================== -->
+<section id="tab-records" hidden>
+  <div class="card">
+    <div class="toolbar">
+      <h2 style="margin:0">全部价格记录</h2><span class="grow"></span>
+      <input type="search" id="q" placeholder="搜索型号、来源、对方……" aria-label="搜索">
+      <select id="fSrc"><option value="">全部来源</option></select>
+      <button class="btn danger" id="delBtn" disabled>删除选中</button>
+      <button class="btn" id="exportBtn">导出 Excel（CSV）</button>
+    </div>
+    <p class="hint" id="recHint"></p>
+    <div class="row bulk" id="recBulk" style="display:none;margin:0 0 10px;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="hint" style="margin:0" id="recBulkN"></span>
+      <select id="rbSrc" aria-label="来源"><option value="">来源不变</option></select>
+      <input id="rbVer" list="verList" placeholder="版本不变" style="width:110px" aria-label="版本">
+      <select id="rbLock" aria-label="锁"><option value="">锁不变</option><option value="UL">无锁</option><option value="LK">有锁</option></select>
+      <select id="rbGrade" aria-label="成色"><option value="">成色不变</option></select>
+      <select id="rbCur" aria-label="币种"><option value="">币种不变</option><option>USD</option><option>HKD</option><option value="CNY">人民币 CNY</option><option>AED</option><option>CAD</option></select>
+      <label class="hint" style="margin:0;display:flex;gap:6px;align-items:center">日期 <input type="date" id="rbDate" aria-label="日期"></label>
+      <button class="btn primary" id="rbApply">应用</button>
+    </div>
+    <div class="scroll"><table id="obsTbl"></table></div>
+  </div>
+  <div class="card ro-hide">
+    <div class="toolbar">
+      <h2 style="margin:0">没认出来的报价行 <span class="flag" id="unCount"></span></h2><span class="grow"></span>
+      <button class="btn" id="unClear">全部清空</button>
+    </div>
+    <p class="hint">保存时没有处理的问题行。如果是有用的报价，可以复制发给 Claude 调整识别规则。</p>
+    <div class="scroll"><table id="unTbl"></table></div>
+  </div>
+</section>
+
+<!-- ============================== SETTINGS ============================== -->
+<section id="tab-settings" hidden>
+  <div class="card">
+    <h2>成本参数</h2>
+    <p class="hint">用来把北美买入价换算成「到香港的真实成本」，把迪拜出价换算成「香港口径到手」。不知道的先空着（按 0 算，价差会偏高）。保存后所有历史记录会自动重算。</p>
+    <div class="form" id="costForm"></div>
+  </div>
+  <div class="card">
+    <h2>截图识别</h2>
+    <p class="hint">选择用哪个模型识别截图。本地模型不花钱、数据不出电脑，需要先装好 Strata 或 Ollama 并打开；Claude API 需要密钥，按使用量付费。</p>
+    <div class="provs" id="provs"></div>
+    <div class="form ocrform" id="ocrForm"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" id="ocrSave">保存识别设置</button>
+      <button class="btn" id="ocrTest">测试连接</button>
+      <span class="hint" style="margin:0" id="ocrResult"></span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>识别测试</h2>
+    <p class="hint">用存好的测试截图（你发过的各种样式，每张都有核对过的标准答案）跑一遍当前的识别模型，看准确率。换了模型或者 Strata 更新后跑一次就知道效果。每张大约 30–60 秒。</p>
+    <div class="row"><button class="btn" id="stRun">开始测试</button><span class="hint" style="margin:0" id="stInfo"></span></div>
+    <div class="tablewrap" style="margin-top:12px"><table id="stTbl"></table></div>
+  </div>
+  <div class="card">
+    <h2>汇率</h2>
+    <p class="hint">港币（7.80）和迪拉姆（3.6725）是固定汇率，已经设好。加元、人民币会变动，按你实际换汇的价格填；改了以后历史记录会按新汇率重算。</p>
+    <div class="form">
+      <div class="lab">1 美元 = ? 加元</div>
+      <div class="unit"><input type="number" step="0.0001" id="cad" placeholder="如 1.38"></div>
+      <div class="h" id="cadDate"></div>
+      <div class="lab">1 美元 = ? 人民币</div>
+      <div class="unit"><input type="number" step="0.0001" id="cny" placeholder="如 7.1"></div>
+      <div class="h" id="cnyDate"></div>
+    </div>
+  </div>
+  <button class="btn primary" id="setSave">保存设置</button>
+  <div class="card" style="margin-top:20px">
+    <h2>局域网共享</h2>
+    <p class="hint">让同一个网络（同一台路由器、同一根网线 / 同一个 Wi-Fi）里的其他电脑、手机用浏览器打开这个工作台。别人要输入密码才能进；数据还是只存在这台电脑上，这台电脑要开着、黑色窗口要开着，别人才能看。</p>
+    <div class="form" id="shareForm">
+      <div class="lab">开启共享</div>
+      <div><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="shOn" style="width:auto"> 开启</label></div>
+      <div class="h">关掉后别人马上就打不开了</div>
+      <div class="lab">查看密码</div>
+      <div><input type="password" id="shView" autocomplete="new-password" placeholder="至少 4 位" style="width:150px;text-align:left"></div>
+      <div class="h" id="shViewH">用这个密码进来的人只能看：看板、价格图表、全部记录，不能改</div>
+      <div class="lab">修改密码（可不设）</div>
+      <div><input type="password" id="shEdit" autocomplete="new-password" placeholder="不设就留空" style="width:150px;text-align:left"></div>
+      <div class="h" id="shEditH">用这个密码进来的人还能录入报价、修改和删除记录。设置页只有这台电脑能打开</div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" id="shSave">保存共享设置</button>
+      <button class="btn" id="shClearEdit" hidden>取消修改密码</button>
+    </div>
+    <div id="shStatus" class="sharebox" hidden></div>
+  </div>
+  <div class="card">
+    <h2>开机自动运行（不用开黑色窗口）</h2>
+    <p class="hint">打开后，每次开机程序会自己在后台运行，不显示黑色窗口，也就不会被误关。局域网里的人只要你电脑开着就能打开。你自己要用时，在浏览器打开 <b>http://127.0.0.1:8765/</b>（建议存成书签），或者双击程序文件夹里的 <b>START_BACKGROUND.bat</b>。</p>
+    <div class="row">
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="asOn"> 开机自动在后台运行</label>
+      <span class="hint" style="margin:0" id="asInfo"></span>
+    </div>
+    <p class="hint" style="margin:12px 0 0">现在就想改成后台运行：点「退出程序」，再双击 START_BACKGROUND.bat。电脑睡眠时别人也打不开，可以在 Windows 设置 → 系统 → 电源里，把「插入电源时进入睡眠」改成「从不」（屏幕照常熄灭没关系）。</p>
+    <div class="row" style="margin-top:10px"><button class="btn danger" id="quitBtn">退出程序</button></div>
+  </div>
+  <div class="card">
+    <h2>云端只读副本</h2>
+    <p class="hint">把数据加密后放一份到网上（GitHub Pages，免费），你的电脑关着别人也能用一个固定网址查看看板、价格图表和全部记录。云端只能看，不能录入；看到的是你最后一次上传的数据。每次保存或修改后，程序会在你停下来两分钟后自动上传（一小时最多约 10 次）。</p>
+    <details class="howto"><summary>第一次怎么设置（大约 5 分钟）</summary><ol>
+      <li>打开 <b>github.com</b>，注册或登录一个免费账号。</li>
+      <li>右上角「+」→ <b>New repository</b>：名字填 <code>mica-prices</code>，选 <b>Public</b>（数据是加密的，公开也看不到内容），勾上 <b>Add a README file</b>，点 <b>Create repository</b>。</li>
+      <li>在这个仓库页面点上方 <b>Settings</b> → 左边 <b>Pages</b>：<b>Source</b> 选 <b>Deploy from a branch</b>，<b>Branch</b> 选 <b>main</b> 和 <b>/(root)</b>，点 <b>Save</b>。</li>
+      <li>右上角头像 → <b>Settings</b> → 左边最下面 <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>：
+        名字随便填；<b>Expiration</b> 选最长（到期后回来换一个）；<b>Repository access</b> 选 <b>Only select repositories</b>，选中 mica-prices；
+        <b>Permissions</b> 里点 <b>Add permissions</b>，选 <b>Contents</b>，设成 <b>Read and write</b>（只给这一项就够）；点 <b>Generate token</b>，复制那串以 github_pat_ 开头的字。</li>
+      <li>回到这里：仓库填「你的用户名/mica-prices」，上传密钥粘贴刚才那串字，再设一个云端查看密码，点「保存」，再点「立即上传」。</li>
+      <li>第一次上传后等一两分钟，把下面出现的网址和查看密码发给要看的人。</li></ol></details>
+    <details class="howto"><summary>换成自己的网址（比如 prices.micasupply.ca）</summary><ol>
+      <li>登录管域名的地方（micasupply.ca 在 <b>Namecheap</b>：Domain List → Manage → <b>Advanced DNS</b>）→ <b>Add new record</b>：Type 选 <b>CNAME</b>，Host 填 <b>prices</b>，Value 填 <b>你的GitHub用户名.github.io</b>（全小写），点绿色勾保存。</li>
+      <li>回到这里，「自己的网址」填 <b>prices.micasupply.ca</b>，点「保存」，再点「立即上传」。</li>
+      <li>打开 GitHub 仓库 → Settings → Pages，确认 Custom domain 显示 prices.micasupply.ca，检查通过后（几分钟到一小时），勾上 <b>Enforce HTTPS</b>。</li>
+      <li>之后用 https://prices.micasupply.ca 打开。换网址后，每个人要重新输一次查看密码。</li></ol></details>
+    <div class="form" style="margin-top:12px">
+      <div class="lab">GitHub 仓库</div>
+      <div><input id="clRepo" placeholder="用户名/mica-prices" style="width:220px;text-align:left"></div>
+      <div class="h">写成「用户名/仓库名」</div>
+      <div class="lab">上传密钥</div>
+      <div><input id="clToken" type="password" autocomplete="off" placeholder="github_pat_…" style="width:220px;text-align:left"></div>
+      <div class="h">只存在这台电脑上，只能改这一个仓库</div>
+      <div class="lab">云端查看密码</div>
+      <div><input id="clPw" type="password" autocomplete="new-password" placeholder="至少 10 位" style="width:220px;text-align:left"></div>
+      <div class="h">数据放在公开网址上，全靠这个密码保护，请设长一点（比如一句话的拼音）。改密码后，大家要用新密码重新进</div>
+      <div class="lab">自己的网址（可不填）</div>
+      <div><input id="clDomain" placeholder="prices.micasupply.ca" style="width:220px;text-align:left"></div>
+      <div class="h">填了以后用这个网址打开，不再用 github.io 的地址。要先在管域名的地方（比如 Namecheap）加好记录（步骤见下面）</div>
+      <div class="lab">自动上传</div>
+      <div><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="clAuto" style="width:auto" checked> 开启</label></div>
+      <div class="h"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary" id="clSave">保存</button>
+      <button class="btn" id="clSync">立即上传</button>
+    </div>
+    <div id="clStatus" class="sharebox" hidden></div>
+  </div>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+<datalist id="modelList"></datalist>
+<datalist id="verList"><option value="US"><option value="CA"><option value="HK"><option value="JP"><option value="UAE"><option value="CN"><option value="EU"><option value="OTHER"><option value="LL/A"><option value="C/A"><option value="ZP/A"><option value="ZA/A"><option value="J/A"><option value="CH/A"><option value="KH/A"><option value="X/A"><option value="AE/A"><option value="B/A"></datalist>
+<div class="modal" id="modal"><img id="modalImg" alt="原截图放大"></div>
+
+<script>
+// ============================== shared
+const APP_VERSION = "2026.11.10-r3";
+let DATA = { obs: [], unmatched: [], costsMissing: [], sources: {}, today: "" };
+const $ = (s) => document.querySelector(s);
+const el = (tag, props = {}, kids = []) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === "text") n.textContent = v; else if (k === "cls") n.className = v; else if (k === "style") n.style.cssText = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v); else if (k === "value") n.value = v;
+    else if (k === "checked") n.checked = !!v; else n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of [].concat(kids)) if (c != null) n.append(c);
+  return n;
+};
+// ============================== cloud copy (static page on GitHub Pages)
+// The page and an encrypted data.bin are published by the program; the viewing password decrypts it here.
+const STATIC = !!window.MICA_STATIC;
+let SNAP = null;
+const realToday = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); };
+async function staticApi(path) {
+  if (path === "/api/meta") return { role: "view", groups: [], models: SNAP.models || [], today: realToday(), ver: APP_VERSION, share: null };
+  if (path === "/api/data") return { ...SNAP.data, today: realToday(), generated: SNAP.generated };
+  if (path === "/api/views") return { views: SNAP.views || [] };
+  throw new Error("这是云端只读副本，只能查看");
+}
+async function staticDecrypt(buf, pw, saved) {
+  const u8 = new Uint8Array(buf);
+  if (new TextDecoder().decode(u8.slice(0, 5)) !== "MICA1") throw new Error("数据文件不对");
+  const salt = u8.slice(5, 21), iv = u8.slice(21, 33), iter = new DataView(buf, 33, 4).getUint32(0), ct = u8.slice(37);
+  const saltHex = [...salt].map((b) => b.toString(16).padStart(2, "0")).join("");
+  let key;
+  if (saved && saved.salt === saltHex) key = await crypto.subtle.importKey("raw", Uint8Array.from(saved.key.match(/../g).map((h) => parseInt(h, 16))), "AES-GCM", true, ["decrypt"]);
+  else if (pw) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+    key = await crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+  } else return null;
+  let plain;
+  try { plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct); } catch (e) { return null; }
+  const text = await new Response(new Blob([plain]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  const raw = new Uint8Array(await crypto.subtle.exportKey("raw", key));
+  return { snap: JSON.parse(text), keyHex: [...raw].map((b) => b.toString(16).padStart(2, "0")).join(""), saltHex };
+}
+async function staticUnlock() {
+  if (!window.crypto?.subtle) {  // browsers only decrypt on https pages
+    if (location.protocol === "http:") { location.replace("https://" + location.host + location.pathname); await new Promise(() => {}); }
+    throw new Error("这个页面要用 https:// 打开。如果刚换了网址，等 GitHub 的 HTTPS 证书生效（一般不到一小时）后再试");
+  }
+  const r = await fetch("data.bin?t=" + Date.now(), { cache: "no-store" });
+  if (!r.ok) throw new Error("云端还没有数据（主机还没上传过）");
+  const buf = await r.arrayBuffer();
+  let saved = null; try { saved = JSON.parse(localStorage.getItem("mica_cloud_key") || "null"); } catch (e) {}
+  const got = saved && await staticDecrypt(buf, null, saved);
+  if (got) { SNAP = got.snap; return; }
+  await new Promise((resolve) => {
+    const pw = el("input", { type: "password", autocomplete: "current-password", "aria-label": "查看密码", placeholder: "查看密码" });
+    const keep = el("input", { type: "checkbox", checked: true });
+    const err = el("div", { cls: "err" });
+    const btn = el("button", { cls: "btn primary", text: "进入" });
+    const form = el("form", { cls: "gate" }, [el("h1", { text: "MICA 价格监控" }), el("p", { text: "云端只读副本。输入查看密码（问 MICA 要）。" }),
+      pw, el("label", { cls: "keep" }, [keep, " 在这台设备上记住"]), btn, err]);
+    const wrap = el("div", { cls: "gatewrap" }, form);
+    form.onsubmit = async (e) => {
+      e.preventDefault(); btn.disabled = true; btn.textContent = "解密中……"; err.textContent = "";
+      const res = await staticDecrypt(buf, pw.value, null).catch(() => null);
+      btn.disabled = false; btn.textContent = "进入";
+      if (!res) { err.textContent = "密码不对"; return; }
+      SNAP = res.snap;
+      try { if (keep.checked) localStorage.setItem("mica_cloud_key", JSON.stringify({ salt: res.saltHex, key: res.keyHex })); } catch (e2) {}
+      wrap.remove(); resolve();
+    };
+    document.body.append(wrap); pw.focus();
+  });
+}
+async function api(path, body) {
+  if (STATIC) return staticApi(path, body);
+  const r = await fetch(path, body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json", "X-MICA": "1" }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (e) {}
+  if (r.status === 401) { location.href = "/login"; throw new Error("请先输入访问密码"); }
+  if (r.status === 404 && path.startsWith("/api/")) { showRestart(); throw new Error("程序刚更新过，需要重启一次：关掉黑色窗口，再双击 START.bat"); }
+  if (!r.ok) throw new Error(j.error || ("出错了（" + r.status + "）"));
+  return j;
+}
+let toastT;
+function toast(msg, bad) { const t = $("#toast"); t.textContent = msg; t.className = "toast" + (bad ? " bad" : ""); t.style.display = "block";
+  clearTimeout(toastT); toastT = setTimeout(() => t.style.display = "none", bad ? 6000 : 3000); }
+const usd = (v) => v == null ? "–" : "$" + Math.round(v).toLocaleString("en-US");
+const pct = (v) => (v * 100).toFixed(1) + "%";
+const gbLabel = (gb) => gb >= 1024 ? (gb / 1024) + "TB" : gb + "GB";
+const simCN = (s) => ({ ESIM: "eSIM", NANO_ESIM: "实体卡+eSIM", DUAL_NANO: "双实体卡", UNKNOWN: "SIM 未确认" }[s] || s);
+const GRADES = ["A+", "A", "B", "C", "D", "SEALED", "ACTIVATED", "DEFECT"];
+const GRADE_CN = { SEALED: "全新未拆", ACTIVATED: "已激活", DEFECT: "有故障" };
+
+// the server sends records compactly (arrays + word lists); rebuild plain objects here
+function unpack(d) {
+  if (!d.packed) return d;
+  const { cols, words, data, n } = d.packed, W = cols.map((c) => words[c] || null), C = cols.map((c) => data[c]);
+  d.obs = new Array(n);
+  for (let i = 0; i < n; i++) {
+    const o = {};
+    for (let j = 0; j < cols.length; j++) o[cols[j]] = W[j] ? W[j][C[j][i]] : C[j][i];
+    d.obs[i] = o;
+  }
+  delete d.packed;
+  return d;
+}
+// who is looking: this computer (everything), a LAN user with the edit password, or a view-only LAN user
+let ROLE = "local";
+function applyRole(role, share) {
+  ROLE = role;
+  document.body.classList.toggle("lan", role !== "local");
+  document.body.classList.toggle("ro", role === "view");
+  const st = $("#status");
+  st.querySelector(".rolebadge")?.remove();
+  if (STATIC) st.append(el("span", { cls: "rolebadge", title: "数据截至主机最后一次上传：" + (SNAP && SNAP.generated) }, ["云端只读副本",
+    el("a", { href: "#", text: "锁定", onclick: (e) => { e.preventDefault(); try { localStorage.removeItem("mica_cloud_key"); } catch (x) {} location.reload(); } })]));
+  else if (role !== "local") st.append(el("span", { cls: "rolebadge" }, [role === "view" ? "只读访问" : "局域网访问", el("a", { href: "/logout", text: "退出" })]));
+  else if (share && share.on && share.urls.length) st.append(el("span", { cls: "rolebadge", title: "同一网络的其他电脑可以打开：" + share.urls.join("  ") }, "局域网共享中"));
+}
+// files were updated while the old program kept running: the page is new, the program behind it is not
+function showRestart() {
+  if ($("#restartNote")) return;
+  document.body.prepend(el("div", { id: "restartNote", cls: "restart" }, [el("b", { text: "程序已更新，还差一步：" }),
+    " 关掉黑色窗口，再双击 START.bat 重新打开。在这之前新功能可能用不了。"]));
+}
+// pick up changes made elsewhere (a phone on the network, another computer): a tiny check every 30 s,
+// a full refresh only when something changed, and never while you are typing or editing a row
+let STAMP = null;
+async function refreshStamp() { if (STATIC) return; try { STAMP = (await api("/api/stamp")).stamp; } catch (e) {} }
+setInterval(async () => {
+  if (STATIC || document.hidden || STAMP == null) return;
+  let now; try { now = (await api("/api/stamp")).stamp; } catch (e) { return; }
+  if (now === STAMP) return;
+  const busy = editingId !== null || ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName);
+  if (busy) return;  // try again on the next check
+  const before = DATA.obs.length;
+  try { await reload(); } catch (e) { return; }
+  const diff = DATA.obs.length - before;
+  toast(diff > 0 ? `有 ${diff} 条新记录（可能是别人刚录的），页面已更新` : "数据有变动，页面已更新");
+}, 30000);
+async function reload() {
+  DATA = unpack(await api("/api/data"));
+  refreshStamp();
+  const badge = $("#status .rolebadge");
+  $("#status").textContent = `共 ${DATA.obs.length} 条记录 · ${DATA.generated}`;
+  if (badge) $("#status").append(badge);
+  initDashFilters(); initRecBulk(); renderAll(); renderObs(); renderUnmatched(); chartOnData();
+}
+
+// ============================== tabs
+function showTab(name) {
+  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab === name));
+  for (const s of document.querySelectorAll("section")) s.hidden = s.id !== "tab-" + name;
+  if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+  if (name === "dash") renderChart(DATA.obs.filter(inScope));
+  if (name === "board") renderBoard();
+  if (name === "chart") { if (!cs.lines.length && DATA.obs.length) cAddLine(cDefaultLine()); cRender(); }
+  if (name === "settings") { loadSettings(); loadOcr(); loadShare(); loadCloud(); loadAutostart(); }
+}
+document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
+
+// ============================== entry
+const entry = { source: localStorage.getItem("mica_src") || "", file: null, rows: [] };
+async function initEntry() {
+  const meta = await api("/api/meta", {});
+  if (meta.ver !== APP_VERSION) showRestart();
+  applyRole(meta.role || "local", meta.share);
+  MODELS = meta.models || [];
+  $("#modelList").replaceChildren(...MODELS.map((m) => el("option", { value: m })));
+  $("#dDate").value = meta.today;
+  renderSources(meta);
+}
+function pickSource(code) {
+  entry.source = code; try { localStorage.setItem("mica_src", code); } catch (_) {}
+  $("#srcGrid").querySelectorAll(".chip[data-code]").forEach((c) => c.setAttribute("aria-pressed", String(c.dataset.code === code)));
+}
+function renderSources(meta) {
+  const grid = $("#srcGrid"); grid.replaceChildren();
+  const all = meta.groups.flatMap((g) => g.items.map((i) => i.code));
+  if (entry.source && !all.includes(entry.source)) entry.source = "";
+  for (const g of meta.groups) {
+    const chips = g.items.map((it) => el("button", { cls: "chip", "aria-pressed": String(entry.source === it.code), "data-code": it.code,
+      onclick: () => pickSource(it.code) }, [it.name, el("small", { text: it.help })]));
+    if (g.custom) {
+      const form = el("div", { cls: "row", style: "display:none;gap:8px", id: "newSrcForm" }, [
+        el("input", { id: "newSrcName", placeholder: "来源名字，如 BinDao", style: "width:170px" }),
+        el("select", { id: "newSrcKind" }, [el("option", { value: "", text: "属于哪一类…" }), ...g.kinds.map((k) => el("option", { value: k.code, text: k.name }))]),
+        el("button", { cls: "btn primary", text: "保存", onclick: addSource }),
+        el("button", { cls: "btn", text: "取消", onclick: () => { form.style.display = "none"; } })]);
+      chips.push(el("button", { cls: "chip", text: "＋ 新增来源", style: "border-style:dashed", onclick: () => { form.style.display = "flex"; $("#newSrcName").focus(); } }));
+      if (g.items.length) chips.push(el("button", { cls: "btn", text: "删除选中的来源", style: "font-size:12px;padding:4px 10px",
+        onclick: deleteSource, title: "只能删除还没有价格记录的自定义来源" }));
+      grid.append(el("div", { cls: "srcrow" }, [el("span", { cls: "g", text: g.name }), ...chips]), form);
+    } else {
+      grid.append(el("div", { cls: "srcrow" }, [el("span", { cls: "g", text: g.name }), ...chips]));
+    }
+  }
+}
+async function addSource() {
+  try {
+    const r = await api("/api/add_source", { name: $("#newSrcName").value, kind: $("#newSrcKind").value });
+    const meta = await api("/api/meta", {}); renderSources(meta); pickSource(r.code);
+    toast("已添加来源，并已选中"); await reload();
+  } catch (e) { toast(e.message, true); }
+}
+async function deleteSource() {
+  if (!entry.source || !entry.source.startsWith("c_")) return toast("先点选一个「我的来源」里的来源", true);
+  if (!confirm("删除这个来源？")) return;
+  try { await api("/api/delete_source", { code: entry.source }); entry.source = ""; renderSources(await api("/api/meta", {})); toast("已删除"); await reload(); }
+  catch (e) { toast(e.message, true); }
+}
+function setFile(f) {
+  if (!f) { entry.file = null; $("#fileChip").classList.remove("on"); $("#txt").hidden = (entry.images || []).length > 0; return; }
+  const rd = new FileReader();
+  rd.onload = () => { entry.file = { name: f.name, b64: rd.result.split(",")[1] };
+    $("#fileName").textContent = f.name; $("#fileSize").textContent = (f.size / 1024).toFixed(0) + " KB";
+    $("#fileChip").classList.add("on"); $("#txt").hidden = true; };
+  rd.readAsDataURL(f);
+}
+entry.images = [];
+// Rows that touch the image edge tend to be dropped by vision models as "cut off".
+// Send the model a copy with a margin around it (same colour as the screenshot's corner); show the original.
+function padImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const pad = Math.round(Math.max(40, Math.min(img.width, img.height) * 0.04));
+      const c = document.createElement("canvas"); c.width = img.width + pad * 2; c.height = img.height + pad * 2;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
+      const [r, gg, bb] = g.getImageData(0, 0, 1, 1).data;
+      g.fillStyle = `rgb(${r},${gg},${bb})`; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(img, pad, pad);
+      resolve(c.toDataURL("image/png"));
+    };
+    img.onerror = () => resolve(url);
+    img.src = url;
+  });
+}
+function addImage(f) {
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
+    const padded = await padImage(rd.result);
+    entry.images.push({ name: f.name || `截图${entry.images.length + 1}.png`, mime: "image/png", b64: padded.split(",")[1], url: rd.result });
+    renderShots();
+  };
+  rd.readAsDataURL(f);
+}
+function takeFiles(list) {
+  for (const f of list) { if ((f.type || "").startsWith("image/")) addImage(f); else setFile(f); }
+}
+function renderShots() {
+  const box = $("#shots"); box.replaceChildren();
+  entry.images.forEach((im, i) => box.append(el("div", { cls: "shot" }, [el("img", { src: im.url, alt: `截图 ${i + 1}` }),
+    el("span", { cls: "n", text: `图 ${i + 1}` }), el("button", { cls: "btn", text: "移除", onclick: () => { entry.images.splice(i, 1); renderShots(); } })])));
+  const n = entry.images.length;
+  $("#shotNote").hidden = !n; $("#shotNote").textContent = n ? `已添加 ${n} 张截图，点「识别报价」开始。识别截图时，上面文本框里的内容这次不会处理。` : "";
+  $("#txt").hidden = !!n || !!entry.file;
+}
+document.addEventListener("paste", (e) => {
+  if ($("#tab-entry").hidden) return;
+  const imgs = [...(e.clipboardData?.items || [])].filter((it) => it.type.startsWith("image/"));
+  if (!imgs.length) return;
+  e.preventDefault(); imgs.forEach((it) => addImage(it.getAsFile()));
+});
+$("#pickFile").onclick = () => $("#fileInput").click();
+$("#fileInput").onchange = (e) => { takeFiles(e.target.files); e.target.value = ""; };
+$("#fileClear").onclick = () => { setFile(null); $("#fileInput").value = ""; };
+const drop = $("#drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => { e.stopPropagation(); if (e.dataTransfer.files.length) takeFiles(e.dataTransfer.files); });
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files.length && !$("#tab-entry").hidden) takeFiles(e.dataTransfer.files); });
+
+$("#parseBtn").onclick = async () => {
+  if (!entry.source) return toast("先在第 1 步选择这批价格的来源", true);
+  const text = $("#txt").value, shots = entry.images.length;
+  if (!shots && !entry.file && !text.trim()) return toast("先粘贴截图或报价，或者拖入一个文件", true);
+  const btn = $("#parseBtn"); btn.disabled = true;
+  btn.textContent = shots ? `正在识别 ${shots} 张截图……本地模型可能要一两分钟` : "识别中……";
+  try {
+    const res = await api("/api/preview", { source: entry.source,
+      images: shots ? entry.images.map(({ name, mime, b64 }) => ({ name, mime, b64 })) : null,
+      text: shots || entry.file ? null : text, file: shots ? null : entry.file,
+      region: $("#dRegion").value, currency: $("#dCur").value, grade: $("#dGrade").value, lock: $("#dLock").value, date: $("#dDate").value });
+    entry.rows = res.rows.map((r, i) => ({ ...r, uid: i, sel: r.status === "ok" }));
+    entry.shown = shots ? entry.images.map((im) => im.url) : [];
+    entry.curImg = 1;
+    $("#parseInfo").textContent = (res.info || []).join("；");
+    $("#ocrBox").hidden = !res.ocrText;
+    $("#ocrText").textContent = (res.ocrText || []).map((t, i) => `—— 图 ${i + 1} ——\n${t}`).join("\n\n");
+    $("#pvCard").hidden = false; renderPreview();
+    $("#pvCard").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!entry.rows.length) toast("没有识别出任何报价行", true);
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = "识别报价"; }
+};
+
+const PV_COLS = [
+  ["sel", ""], ["status", "状态"], ["msg", "说明"], ["img", "图"], ["date", "日期"], ["model", "型号"], ["gb", "容量"], ["version", "版本"], ["lock", "锁"], ["grade", "成色"], ["color", "颜色"],
+  ["qty", "数量"], ["price", "单价"], ["currency", "币种"], ["fca", "到港美元"], ["raw_line", "原文"]];
+const STATUS = { ok: ["ok", "✓ 可保存"], check: ["check", "! 请核对"], err: ["err", "✗ 有问题"], dup: ["dup", "已存在"] };
+function renderPreview() {
+  const rows = entry.rows;
+  const count = (s) => rows.filter((r) => r.status === s).length;
+  const selN = rows.filter((r) => r.sel).length;
+  $("#pvSummary").replaceChildren(
+    el("span", { cls: "tag ok", text: `可保存 ${count("ok")}` }), el("span", { cls: "tag check", text: `请核对 ${count("check")}` }),
+    el("span", { cls: "tag err", text: `有问题 ${count("err")}` }), el("span", { cls: "tag dup", text: `已存在 ${count("dup")}` }));
+  $("#saveBtn").textContent = `保存选中的 ${selN} 条`; $("#saveBtn").disabled = !selN;
+  const only = $("#onlyBad").checked;
+  const hasImg = (entry.shown || []).length > 0;
+  $("#pvGrid").classList.toggle("has-img", hasImg); $("#shotView").hidden = !hasImg;
+  if (hasImg) showShot(entry.curImg || 1);
+  const oneDate = new Set(rows.map((r) => r.date)).size <= 1;
+  // with a screenshot beside the table: the picture is the original, and one date is set in step 3
+  const cols = PV_COLS.filter(([k]) => !(k === "img" && !hasImg) && !(k === "raw_line" && hasImg) && !(k === "date" && oneDate));
+  const tbl = $("#pvTbl"); tbl.replaceChildren();
+  const allBox = el("input", { type: "checkbox", "aria-label": "全选", onchange: (e) => {
+    for (const r of rows) if (r.status === "ok" || r.status === "check") r.sel = e.target.checked; renderPreview(); } });
+  tbl.append(el("thead", {}, el("tr", {}, cols.map(([k, l]) => el("th", { cls: ["qty", "price", "fca"].includes(k) ? "num" : "" }, k === "sel" ? allBox : l)))));
+  const tb = el("tbody");
+  for (const r of rows) {
+    if (only && (r.status === "ok" || r.status === "dup")) continue;
+    const can = r.status === "ok" || r.status === "check";
+    const upd = (k) => (e) => { r[k] = e.target.value; revalidate(r); };
+    const inp = (k, cls, type = "text") => el("input", { cls, type, value: r[k] == null ? "" : String(r[k]), onchange: upd(k), "aria-label": k });
+    const sel = (k, opts) => el("select", { onchange: upd(k), "aria-label": k }, opts.map((o) => el("option", { value: o, text: o || "—", selected: (r[k] || "") === o })));
+    const [scls, stxt] = STATUS[r.status] || ["err", r.status];
+    tb.append(el("tr", { cls: r.status,
+      onclick: (e) => { if (hasImg && r.img && !["INPUT", "SELECT"].includes(e.target.tagName) && r.img !== entry.curImg) { entry.curImg = r.img; renderPreview(); } } }, [
+      el("td", {}, el("input", { type: "checkbox", checked: r.sel, disabled: !can, "aria-label": "选择", onchange: (e) => { r.sel = e.target.checked; renderPreview(); } })),
+      el("td", {}, el("span", { cls: "tag " + scls, text: stxt })),
+      msgCell(r),
+      hasImg ? el("td", { cls: "imgn", text: r.img ? String(r.img) : "" }) : null,
+      oneDate ? null : el("td", {}, inp("date", "w-date", "date")),
+      el("td", {}, el("input", { cls: "w-model", list: "modelList", value: r.model || "", onchange: upd("model"), "aria-label": "型号", placeholder: "型号" })),
+      el("td", {}, el("input", { cls: "w-gb", value: r.gb && +r.gb >= 1024 ? (+r.gb / 1024) + "TB" : (r.gb || ""), onchange: upd("gb"), "aria-label": "容量" })),
+      el("td", {}, el("input", { cls: "w-ver", list: "verList", value: r.version || "", onchange: upd("version"), "aria-label": "版本", title: "可以写版本代码（LL/A、ZA/A……）或 US / HK / JP" })),
+      el("td", {}, el("select", { onchange: upd("lock"), "aria-label": "锁" }, [["UL", "无锁"], ["LK", "有锁"]].map(([v, t]) => el("option", { value: v, text: t, selected: (r.lock || "UL") === v })))),
+      el("td", {}, gradeCell(r, upd)), el("td", {}, inp("color", "w-color")), el("td", { cls: "num" }, inp("qty", "w-qty")), el("td", { cls: "num" }, inp("price", "w-price")),
+      el("td", {}, sel("currency", ["USD", "HKD", "CNY", "AED", "CAD"])),
+      el("td", { cls: "num", text: usd(r.fca) }),
+      hasImg ? null : el("td", { cls: "raw", text: r.raw_line || "", title: r.raw_line || "" })]));
+  }
+  if (!tb.children.length) tb.append(el("tr", {}, el("td", { colspan: cols.length, cls: "empty", text: only ? "没有需要处理的行" : "没有识别出报价" })));
+  tbl.append(tb);
+}
+// grade column: the unified grade the price is filed under; the quote's own word stays visible underneath
+function gradeCell(r, upd) {
+  if (!r.gradeNorm) return el("input", { cls: "w-grade", value: r.grade || "", onchange: upd("grade"), "aria-label": "成色", placeholder: "成色" });
+  const raw = String(r.gradeFallback || r.grade || "").trim(), same = raw.toUpperCase() === r.gradeNorm;
+  const box = el("div", { cls: "gcell" }, el("select", { "aria-label": "成色", onchange: upd("grade") },
+    GRADES.map((g) => el("option", { value: g, text: GRADE_CN[g] || g, selected: g === r.gradeNorm }))));
+  if (!same && raw) box.append(el("small", { text: "原文：" + raw, title: "报价里写的是「" + raw + "」，按「" + (GRADE_CN[r.gradeNorm] || r.gradeNorm) + "」记录" }));
+  return box;
+}
+$("#onlyBad").onchange = renderPreview;
+// manual entry: a blank row in the results table, filled in by hand (no screenshot, no Strata needed).
+// It starts from the step-3 defaults, or copies the previous hand-made row so a list of similar items is quick.
+$("#manualBtn").onclick = async () => {
+  if (!entry.source) return toast("先在第 1 步选择这批价格的来源", true);
+  const last = entry.rows.filter((r) => r.manual).slice(-1)[0];
+  const row = { date: $("#dDate").value || DATA.today, model: last?.model || "", gb: last?.gb || "",
+    version: $("#dRegion").value || last?.version || "", lock: $("#dLock").value || last?.lock || "UL",
+    grade: $("#dGrade").value || last?.grade || "", color: "", qty: 1, price: "", currency: $("#dCur").value || last?.currency || "USD",
+    raw_line: "手动录入", raw_ref: `manual:${Date.now()}:${Math.random().toString(36).slice(2, 8)}` };
+  try {
+    const { row: v } = await api("/api/validate", { source: entry.source, row });
+    const uid = entry.rows.reduce((m, r) => Math.max(m, r.uid), -1) + 1;
+    entry.rows.push({ ...v, uid, sel: v.status === "ok", manual: true });
+    $("#pvCard").hidden = false; renderPreview();
+    const tr = $("#pvTbl tbody").lastElementChild;
+    tr?.scrollIntoView({ behavior: "smooth", block: "center" });
+    tr?.querySelector(last ? "input[aria-label=price]" : "input[aria-label=型号]")?.focus();
+  } catch (e) { toast(e.message, true); }
+};
+// change lock / version / grade / currency on all ticked rows at once
+$("#bApply").onclick = async () => {
+  const ch = { lock: $("#bLock").value, version: $("#bVer").value.trim(), grade: $("#bGrade").value, currency: $("#bCur").value };
+  for (const k of Object.keys(ch)) if (!ch[k]) delete ch[k];
+  const rows = entry.rows.filter((r) => r.sel);
+  if (!Object.keys(ch).length) return toast("先选要改成什么", true);
+  if (!rows.length) return toast("先勾选要改的行", true);
+  const btn = $("#bApply"); btn.disabled = true; btn.textContent = `正在改 ${rows.length} 行……`;
+  try {
+    await Promise.all(rows.map(async (r) => {
+      Object.assign(r, ch);
+      if (ch.version) r.region = "";
+      const { row } = await api("/api/validate", { source: entry.source, row: r });
+      Object.assign(r, row, { uid: r.uid, sel: row.status === "ok" || row.status === "check" ? r.sel : false });
+    }));
+    toast(`已改 ${rows.length} 行`);
+  } catch (e) { toast(e.message, true); }
+  finally { btn.disabled = false; btn.textContent = "应用"; renderPreview(); }
+};
+let MODELS = [];
+// unknown grade word / model name: resolve it here once, and the program remembers it
+function msgCell(r) {
+  const td = el("td", { cls: "msg" });
+  if (r.status === "ok") { td.textContent = `${simCN(r.simShown)} · ${r.lock === "LK" ? "有锁" : "无锁"} · ${GRADE_CN[r.gradeNorm] || r.gradeNorm}`; return td; }
+  td.append(r.msg || "");
+  const gm = /^成色认不出: (.+)$/.exec(r.msg || ""), mm = /^型号认不出: (.+)$/.exec(r.msg || ""), vm = /^版本看不懂: (.+?)（/.exec(r.msg || "");
+  if (vm) {
+    const raw = vm[1], inp = el("input", { list: "verList", placeholder: "如 HK、ZP/A、US", style: "width:120px" });
+    td.replaceChildren(`版本「${raw}」看不懂，它是：`);
+    td.append(el("div", { style: "margin-top:4px;display:flex;gap:4px" }, [inp, el("button", { cls: "btn", text: "记住", style: "padding:3px 8px",
+      onclick: () => inp.value.trim() && learn("version", raw, inp.value.trim()) })]));
+    return td;
+  }
+  if (gm) {
+    const raw = gm[1];
+    td.append(el("div", { style: "margin-top:4px" }, el("select", { "aria-label": "这个成色是", onchange: (e) => e.target.value && learn("grade", raw, e.target.value) },
+      [["", "「" + raw + "」是…"], ["A+", "A+"], ["A", "A"], ["B", "B"], ["C", "C"], ["D", "D"], ["SEALED", "全新未拆"], ["ACTIVATED", "已激活"], ["DEFECT", "有故障"]].map(([v, t]) => el("option", { value: v, text: t })))));
+  } else if (mm) {
+    const raw = mm[1], inp = el("input", { list: "modelList", placeholder: "选对应型号", style: "width:150px" });
+    td.append(el("div", { style: "margin-top:4px;display:flex;gap:4px" }, [inp, el("button", { cls: "btn", text: "记住", style: "padding:3px 8px",
+      onclick: () => inp.value && learn("model", raw, inp.value) })]));
+  }
+  return td;
+}
+async function learn(kind, raw, value) {
+  try {
+    await api("/api/learn", { kind, raw, value });
+    toast(kind === "grade" ? `已记住：「${raw}」= ${GRADE_CN[value] || value}，以后自动识别` : `已记住：「${raw}」= ${value}，以后自动识别`);
+    const low = raw.toLowerCase().replace(/\s+/g, " ");
+    const same = entry.rows.filter((r) => r.status === "err" && (kind === "grade" ? (r.grade || "").toLowerCase() === low
+      : kind === "version" ? String(r.version || r.region || "").toLowerCase().replace(/\s+/g, " ").trim() === low : r.model === raw));
+    for (const r of same) await revalidate(r);
+  } catch (e) { toast(e.message, true); }
+}
+function showShot(n) {
+  const urls = entry.shown || []; if (!urls.length) return;
+  n = Math.min(Math.max(1, n), urls.length);
+  $("#shotImg").src = urls[n - 1];
+  $("#shotLabel").textContent = `原截图：图 ${n}（共 ${urls.length} 张）· 点表格里的行切换到对应截图，点图片放大看`;
+}
+$("#shotImg").onclick = () => { $("#modalImg").src = $("#shotImg").src; $("#modal").style.display = "block"; };
+$("#modal").onclick = () => { $("#modal").style.display = "none"; };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#modal").style.display = "none"; });
+async function revalidate(r) {
+  try {
+    const { row } = await api("/api/validate", { source: entry.source, row: r });
+    const wasBad = r.status === "err" || r.status === "check";
+    Object.assign(r, row, { uid: r.uid, sel: row.status === "ok" ? (wasBad ? true : r.sel) : row.status === "check" ? r.sel : false });
+    renderPreview();
+  } catch (e) { toast(e.message, true); }
+}
+$("#saveBtn").onclick = async () => {
+  const chosen = entry.rows.filter((r) => r.sel);
+  const skipped = entry.rows.filter((r) => !r.sel && r.status === "err");
+  try {
+    const res = await api("/api/save", { source: entry.source, rows: chosen, unmatched: skipped.map((r) => ({ raw_line: r.raw_line, msg: r.msg })) });
+    const failed = new Set(res.errors.map((e) => e.raw_ref));
+    entry.rows = entry.rows.filter((r) => !(r.sel && !failed.has(r.raw_ref)) && !(r.status === "err" && !r.sel));
+    toast(`已保存 ${res.saved} 条` + (res.errors.length ? `，${res.errors.length} 条保存失败` : ""), !!res.errors.length);
+    renderPreview();
+    if (!entry.rows.filter((r) => r.status !== "dup").length) { $("#pvCard").hidden = true; $("#txt").value = ""; setFile(null); entry.images = []; renderShots(); }
+    await reload();
+  } catch (e) { toast(e.message, true); }
+};
+$("#pvClear").onclick = () => { entry.rows = []; entry.shown = []; entry.images = []; renderShots(); $("#pvCard").hidden = true; $("#txt").value = ""; setFile(null); $("#parseInfo").textContent = ""; window.scrollTo({ top: 0 }); };
+
+// ============================== dashboard
+const MKT = { buy: { label: "北美到港成本", color: "var(--s1)" }, HK: { label: "香港卖出到手", color: "var(--s2)" },
+  AE: { label: "迪拜卖出到手", color: "var(--s3)" }, ref: { label: "同行报价（参考）", color: "var(--ref)" } };
+const state = { days: 30, model: "", grade: "", alert: 8, key: null, sort: { col: "pct", dir: -1 }, q: "", src: "" };
+const keyOf = (o) => [o.model, o.gb, o.vg || o.region, o.sim, o.lock, o.grade].join("|");
+const keyLabel = (k) => { const [m, gb, vg, sim, lock, g] = k.split("|"); return `${m} ${gbLabel(+gb)} · ${vg} · ${simCN(sim)} · ${lock === "UL" ? "无锁" : "有锁"} · ${GRADE_CN[g] || g}`; };
+const dayNum = (d) => Date.parse(d + "T00:00:00Z") / 864e5;
+const cutoff = () => state.days ? new Date(Date.parse(DATA.today) - state.days * 864e5).toISOString().slice(0, 10) : "0000";
+const bucket = (o) => o.role === "buy" && o.mkt === "NA" ? "buy" : o.role === "sell" && (o.mkt === "HK" || o.mkt === "AE") ? o.mkt : o.role === "ref" && (o.mkt === "HK" || o.mkt === "AE") ? "ref" : null;
+const inScope = (o) => o.d >= cutoff() && (!state.model || o.model === state.model) && (!state.grade || o.grade === state.grade);
+
+function spreads(rows) {
+  const book = new Map();
+  for (const o of rows) {
+    if (o.fca == null || o.grade === "SEALED" || o.grade === "DEFECT") continue;
+    const b = bucket(o); if (!b || b === "ref") continue;
+    const k = keyOf(o);
+    if (!book.has(k)) book.set(k, { buy: [], HK: [], AE: [], missing: false });
+    const e = book.get(k); e[b].push(o.fca); e.missing ||= !!o.missing;
+  }
+  const out = [];
+  for (const [k, e] of book) {
+    if (!e.buy.length) continue;
+    const cost = Math.min(...e.buy);
+    for (const m of ["HK", "AE"]) {
+      if (!e[m].length) continue;
+      const sell = Math.max(...e[m]);
+      out.push({ key: k, mkt: m, cost, nb: e.buy.length, sell, ns: e[m].length, sp: sell - cost, pct: (sell - cost) / cost, missing: e.missing });
+    }
+  }
+  return out;
+}
+function renderNotices() {
+  const box = $("#notices"); box.replaceChildren();
+  if (DATA.costsMissing.length && ROLE !== "view") box.append(el("div", { cls: "notice" }, [el("b", { text: `成本参数还有 ${DATA.costsMissing.length} 项没填。` }),
+    " 没填的按 0 计算，价差会偏高。 ", el("a", { text: "去设置", onclick: () => showTab("settings") })]));
+  if (!DATA.obs.length) box.append(el("div", { cls: "notice" }, [el("b", { text: "还没有任何价格记录。" }), " ", el("a", { text: "去录入报价", onclick: () => showTab("entry") })]));
+}
+function renderTiles(rows, sp) {
+  const t = $("#tiles"); t.replaceChildren();
+  const best = sp.slice().sort((a, b) => b.pct - a.pct)[0];
+  const tile = (k, v, d) => el("div", { cls: "tile" }, [el("div", { cls: "k", text: k }), el("div", { cls: "v", text: v }), el("div", { cls: "d", text: d, title: d })]);
+  t.append(tile("价格记录", rows.length.toLocaleString(), "最近一条：" + (rows.length ? rows[rows.length - 1].d : "–")));
+  t.append(tile("跟踪的型号口径", new Set(rows.map(keyOf)).size.toLocaleString(), "型号 × 容量 × SIM × 锁 × 成色"));
+  t.append(best ? tile("最大价差", pct(best.pct), `${keyLabel(best.key)} → ${best.mkt === "HK" ? "香港" : "迪拜"}，每台 ${usd(best.sp)}`) : tile("最大价差", "–", "还没有可比的买卖两侧数据"));
+  t.append(tile("没认出来的行", DATA.unmatched.length.toLocaleString(), "在「全部记录」页"));
+}
+function renderSpreads(sp) {
+  const tbl = $("#spreadTbl"); tbl.replaceChildren();
+  $("#spreadEmpty").hidden = sp.length > 0;
+  if (!sp.length) return;
+  const cols = [["key", "型号口径", false], ["mkt", "卖到", false], ["cost", "北美成本", true], ["sell", "卖出到手", true],
+    ["sp", "每台价差", true], ["pct", "价差率", true], ["n", "样本 买/卖", true], ["flag", "", false]];
+  const { col, dir } = state.sort;
+  const val = (s) => col === "n" ? Math.min(s.nb, s.ns) : s[col];
+  sp.sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0) * dir);
+  tbl.append(el("thead", {}, el("tr", {}, cols.map(([c, label, num]) => el("th", {
+    cls: (num ? "num " : "") + (c !== "flag" ? "sort" : ""), text: label + (col === c ? (dir > 0 ? " ↑" : " ↓") : ""),
+    onclick: () => { if (c === "flag") return; state.sort = { col: c, dir: col === c ? -dir : (num ? -1 : 1) }; renderSpreads(sp); } })))));
+  const alert = state.alert / 100, tb = el("tbody");
+  for (const s of sp) {
+    const cls = s.pct >= alert ? "good" : s.pct < 0 ? "bad" : "flat";
+    const flags = []; if (Math.min(s.nb, s.ns) < 3) flags.push("样本少"); if (s.missing) flags.push("成本未填全");
+    tb.append(el("tr", { cls: "click" + (state.key === s.key ? " sel" : ""), tabindex: "0", onclick: () => selectKey(s.key),
+      onkeydown: (e) => { if (e.key === "Enter") selectKey(s.key); } }, [
+      el("td", { text: keyLabel(s.key) }), el("td", {}, [el("span", { cls: "mk", style: `background:${MKT[s.mkt].color}` }), s.mkt === "HK" ? "香港" : "迪拜"]),
+      el("td", { cls: "num", text: usd(s.cost) }), el("td", { cls: "num", text: usd(s.sell) }),
+      el("td", { cls: "num", text: (s.sp >= 0 ? "+" : "−") + usd(Math.abs(s.sp)) }),
+      el("td", { cls: "num" }, el("span", { cls: "pill " + cls, text: (s.pct >= alert ? "▲ " : s.pct < 0 ? "▼ " : "") + pct(s.pct) })),
+      el("td", { cls: "num", text: `${s.nb} / ${s.ns}` }), el("td", { cls: "flag", text: flags.join("，") })]));
+  }
+  tbl.append(tb);
+}
+function seriesFor(key, rows) {
+  const per = { buy: new Map(), HK: new Map(), AE: new Map(), ref: new Map() };
+  for (const o of rows) {
+    if (keyOf(o) !== key || o.fca == null) continue;
+    const b = bucket(o); if (!b) continue;
+    const m = per[b], cur = m.get(o.d);
+    if (b === "buy") m.set(o.d, cur == null ? o.fca : Math.min(cur, o.fca));
+    else if (b === "ref") { if (!cur) m.set(o.d, [o.fca]); else cur.push(o.fca); }
+    else m.set(o.d, cur == null ? o.fca : Math.max(cur, o.fca));
+  }
+  return per;
+}
+function niceTicks(lo, hi, n) {
+  const span = hi - lo || Math.abs(hi) || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw);
+  const a = Math.floor(lo / step) * step, b = Math.ceil(hi / step) * step, t = [];
+  for (let v = a; v <= b + step / 2; v += step) t.push(+v.toFixed(6));
+  return t;
+}
+function renderChart(rows) {
+  const host = $("#chart"), tip = $("#tip");
+  host.querySelectorAll("svg, .empty").forEach((n) => n.remove());
+  $("#legend").replaceChildren(); $("#chartTbl").replaceChildren();
+  $("#fKey").hidden = !state.key;
+  if (!state.key) { $("#chartTitle").textContent = "价格走势"; host.prepend(el("div", { cls: "empty", text: "还没有可以画图的数据" })); return; }
+  if ($("#tab-dash").hidden) return;
+  $("#chartTitle").textContent = keyLabel(state.key);
+  const per = seriesFor(state.key, rows);
+  const names = ["buy", "HK", "AE", "ref"].filter((s) => per[s].size);
+  for (const s of names) $("#legend").append(el("span", {}, [el("i", { cls: s === "ref" ? "dot" : "", style: `background:${MKT[s].color}` }), MKT[s].label]));
+  const dates = [...new Set(names.flatMap((s) => [...per[s].keys()]))].sort();
+  if (!dates.length) { host.prepend(el("div", { cls: "empty", text: "这个时间范围里没有数据" })); return; }
+  const vals = names.flatMap((s) => [...per[s].values()].flat());
+  const W = Math.max(320, host.clientWidth), H = 300, m = { t: 12, r: 112, b: 28, l: 56 };
+  const x0 = dayNum(dates[0]) - (dates.length === 1 ? 1 : 0), x1 = dayNum(dates[dates.length - 1]) + (dates.length === 1 ? 1 : 0);
+  const yt = niceTicks(Math.min(...vals) * 0.97, Math.max(...vals) * 1.03, 5), y0 = yt[0], y1 = yt[yt.length - 1];
+  const X = (d) => m.l + (dayNum(d) - x0) / (x1 - x0 || 1) * (W - m.l - m.r);
+  const Y = (v) => m.t + (1 - (v - y0) / (y1 - y0 || 1)) * (H - m.t - m.b);
+  const NS = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": keyLabel(state.key) + " 价格走势" });
+  for (const v of yt) {
+    svg.append(s("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 }));
+    const tx = s("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end", fill: "var(--muted)", "font-size": 11 }); tx.textContent = "$" + v.toLocaleString("en-US"); svg.append(tx);
+  }
+  svg.append(s("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1 }));
+  const step = Math.max(1, Math.ceil(dates.length / Math.max(2, Math.floor((W - m.l - m.r) / 80))));
+  dates.forEach((d, i) => { if (i % step && i !== dates.length - 1) return;
+    const tx = s("text", { x: X(d), y: H - 8, "text-anchor": "middle", fill: "var(--muted)", "font-size": 11 }); tx.textContent = d.slice(5); svg.append(tx); });
+  const ends = [];
+  for (const name of names) {
+    const pts = [...per[name].entries()].sort((a, b) => a[0] < b[0] ? -1 : 1), col = MKT[name].color;
+    if (name === "ref") { for (const [d, arr] of pts) for (const v of arr) svg.append(s("circle", { cx: X(d), cy: Y(v), r: 4, fill: "var(--surface)", stroke: col, "stroke-width": 2 })); continue; }
+    if (pts.length > 1) svg.append(s("path", { d: pts.map(([d, v], i) => (i ? "L" : "M") + X(d) + " " + Y(v)).join(" "), fill: "none", stroke: col, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    for (const [d, v] of pts) svg.append(s("circle", { cx: X(d), cy: Y(v), r: 4, fill: col, stroke: "var(--surface)", "stroke-width": 2 }));
+    const [ld, lv] = pts[pts.length - 1]; ends.push({ name, y: Y(lv), v: lv });
+  }
+  ends.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 15) ends[i].y = ends[i - 1].y + 15;
+  for (const e of ends) { const tx = s("text", { x: W - m.r + 8, y: e.y + 4, fill: "var(--ink-2)", "font-size": 11.5 }); tx.textContent = `${MKT[e.name].label.slice(0, 2)} ${usd(e.v)}`; svg.append(tx); }
+  const cross = s("line", { y1: m.t, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1, visibility: "hidden" }); svg.append(cross);
+  const hit = s("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }); svg.append(hit);
+  hit.addEventListener("mousemove", (evt) => {
+    const r = svg.getBoundingClientRect(), px = (evt.clientX - r.left) * (W / r.width);
+    let best = dates[0]; for (const d of dates) if (Math.abs(X(d) - px) < Math.abs(X(best) - px)) best = d;
+    cross.setAttribute("x1", X(best)); cross.setAttribute("x2", X(best)); cross.setAttribute("visibility", "visible");
+    tip.replaceChildren(el("div", { cls: "t", text: best }));
+    for (const n of names) { const v = per[n].get(best); if (v == null) continue;
+      tip.append(el("div", { cls: "r" }, [el("span", { cls: "l" }, [el("i", { style: `background:${MKT[n].color}` }), MKT[n].label]), el("b", { text: Array.isArray(v) ? v.map(usd).join(" / ") : usd(v) })])); }
+    const sx = X(best) / W * r.width; tip.style.left = (sx + 190 > r.width ? sx - 186 : sx + 14) + "px"; tip.style.top = "16px"; tip.style.display = "block";
+  });
+  hit.addEventListener("mouseleave", () => { tip.style.display = "none"; cross.setAttribute("visibility", "hidden"); });
+  host.prepend(svg);
+  const ct = $("#chartTbl");
+  ct.append(el("thead", {}, el("tr", {}, [el("th", { text: "日期" }), ...names.map((n) => el("th", { cls: "num", text: MKT[n].label }))])));
+  const tb = el("tbody");
+  for (const d of dates) tb.append(el("tr", {}, [el("td", { text: d }), ...names.map((n) => { const v = per[n].get(d);
+    return el("td", { cls: "num", text: v == null ? "–" : Array.isArray(v) ? v.map(usd).join(" / ") : usd(v) }); })]));
+  ct.append(tb);
+}
+function renderLadder(rows) {
+  const tbl = $("#ladderTbl"); tbl.replaceChildren();
+  if (!state.key) { $("#ladderTitle").textContent = "各成色价格对比"; return; }
+  const [model, gb, vg, sim, lock] = state.key.split("|");
+  $("#ladderTitle").textContent = `${model} ${gbLabel(+gb)}（${vg}）各成色价格`;
+  const cols = [["buy", "北美成本", Math.min], ["HK", "香港到手", Math.max], ["AE", "迪拜到手", Math.max], ["ref", "同行报价", Math.min]], cell = {};
+  for (const o of rows) {
+    if (o.model !== model || String(o.gb) !== gb || (o.vg || o.region) !== vg || o.sim !== sim || o.lock !== lock || o.fca == null) continue;
+    const b = bucket(o); if (!b) continue;
+    const k = o.grade + "|" + b, f = cols.find((c) => c[0] === b)[2]; cell[k] = cell[k] == null ? o.fca : f(cell[k], o.fca);
+  }
+  tbl.append(el("thead", {}, el("tr", {}, [el("th", { text: "成色" }), ...cols.map(([, l]) => el("th", { cls: "num", text: l }))])));
+  const tb = el("tbody");
+  for (const g of GRADES) { if (!cols.some(([b]) => cell[g + "|" + b] != null)) continue;
+    tb.append(el("tr", { cls: g === state.key.split("|")[5] ? "sel" : "" }, [el("td", { text: GRADE_CN[g] || g }), ...cols.map(([b]) => el("td", { cls: "num", text: usd(cell[g + "|" + b]) }))])); }
+  tbl.append(tb);
+}
+function selectKey(k) { state.key = k; $("#fKey").value = k; renderAll(); }
+function renderAll() {
+  const rows = DATA.obs.filter(inScope), sp = spreads(rows);
+  const keys = [...new Set(rows.filter((o) => bucket(o)).map(keyOf))].sort();
+  if (!keys.includes(state.key)) { const top = sp.slice().sort((a, b) => b.pct - a.pct)[0]; state.key = top ? top.key : keys[0] || null; }
+  $("#fKey").replaceChildren(...keys.map((k) => el("option", { value: k, text: keyLabel(k) })));
+  if (state.key) $("#fKey").value = state.key;
+  renderNotices(); renderTiles(rows, sp); renderSpreads(sp); renderChart(rows); renderLadder(rows);
+}
+function initDashFilters() {
+  const keepM = state.model, keepG = state.grade, keepS = state.src;
+  const fm = $("#fModel"); fm.replaceChildren(el("option", { value: "", text: "全部" }));
+  const models = [...new Map(DATA.obs.map((o) => [o.model, o.gen])).entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+  for (const [n] of models) fm.append(el("option", { value: n, text: n })); fm.value = keepM;
+  const fg = $("#fGrade"); fg.replaceChildren(el("option", { value: "", text: "全部" }));
+  for (const g of GRADES) if (DATA.obs.some((o) => o.grade === g)) fg.append(el("option", { value: g, text: GRADE_CN[g] || g })); fg.value = keepG;
+  const fs = $("#fSrc"); fs.replaceChildren(el("option", { value: "", text: "全部来源" }));
+  const have = new Map(); for (const o of DATA.obs) have.set(o.src, (have.get(o.src) || 0) + 1);
+  for (const s of new Set([...Object.keys(DATA.sources), ...have.keys()])) fs.append(el("option", { value: s, text: `${DATA.sources[s] || s} (${have.get(s) || 0})` })); fs.value = keepS;
+}
+(function initRange() {
+  const seg = $("#range");
+  for (const [d, l] of [[7, "7 天"], [14, "14 天"], [30, "30 天"], [90, "90 天"], [0, "全部"]]) seg.append(el("button", { text: l, "aria-pressed": String(state.days === d),
+    onclick: (e) => { state.days = d; seg.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", "false")); e.target.setAttribute("aria-pressed", "true"); renderAll(); renderObs(); } }));
+})();
+$("#fModel").onchange = (e) => { state.model = e.target.value; renderAll(); };
+$("#fGrade").onchange = (e) => { state.grade = e.target.value; renderAll(); };
+$("#fAlert").oninput = (e) => { state.alert = +e.target.value || 0; renderAll(); };
+$("#fKey").onchange = (e) => selectKey(e.target.value);
+$("#fKeyOpen").onclick = () => state.key && openKeyInChart(state.key);
+let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => renderChart(DATA.obs.filter(inScope)), 150); });
+
+// ============================== records
+const OBS_COLS = [["id", "编号"], ["d", "日期"], ["src", "来源"], ["model", "型号"], ["gb", "容量"], ["version", "版本"], ["sim", "SIM"], ["lock", "锁"],
+  ["grade_raw", "原始成色"], ["grade", "统一成色"], ["color", "颜色"], ["qty", "数量"], ["price", "原价"], ["cur", "币种"], ["usd", "美元"], ["fca", "到港口径"], ["cp", "对方"], ["note", "备注"]];
+const NUMC = ["id", "qty", "price", "usd", "fca"];
+const picked = new Set();
+function filteredObs() {
+  const q = state.q.toLowerCase();
+  return DATA.obs.filter((o) => (!state.src || o.src === state.src) &&
+    (!q || [o.model, DATA.sources[o.src], o.src, o.cp, o.grade_raw, o.region, o.version, o.note, o.d].join(" ").toLowerCase().includes(q))).slice().reverse();
+}
+let editingId = null;
+const recSel = (opts, val, label) => el("select", { "aria-label": label }, opts.map(([v, t]) => el("option", { value: v, text: t, selected: String(v) === String(val ?? "") })));
+function renderObs() {
+  const tbl = $("#obsTbl"); tbl.replaceChildren();
+  const rows = filteredObs();
+  for (const id of [...picked]) if (!DATA.obs.some((o) => o.id === id)) picked.delete(id);
+  $("#delBtn").hidden = ROLE === "view";
+  $("#delBtn").disabled = !picked.size; $("#delBtn").textContent = picked.size ? `删除选中的 ${picked.size} 条` : "删除选中";
+  $("#recBulk").style.display = picked.size && ROLE !== "view" ? "" : "none"; $("#recBulkN").textContent = `把勾选的 ${picked.size} 条一起改成：`;
+  $("#recHint").textContent = `共 ${rows.length} 条` + (rows.length > 1000 ? "，只显示最新 1000 条（用搜索缩小范围）" : "") + "。点一行最右边的「改」可以修改这条；勾选左边的框可以批量修改或删除。";
+  const shown = rows.slice(0, 1000);
+  const all = el("input", { type: "checkbox", "aria-label": "全选", checked: shown.length && shown.every((o) => picked.has(o.id)),
+    onchange: (e) => { for (const o of shown) e.target.checked ? picked.add(o.id) : picked.delete(o.id); renderObs(); } });
+  tbl.append(el("thead", {}, el("tr", {}, [el("th", {}, all), ...OBS_COLS.map(([k, l]) => el("th", { cls: NUMC.includes(k) ? "num" : "", text: l })), el("th", {})])));
+  const tb = el("tbody");
+  for (const o of shown) {
+    if (o.id === editingId) { tb.append(recEditRow(o)); continue; }
+    tb.append(el("tr", { cls: picked.has(o.id) ? "sel" : "" }, [
+      el("td", {}, el("input", { type: "checkbox", checked: picked.has(o.id), "aria-label": "选择", onchange: (e) => { e.target.checked ? picked.add(o.id) : picked.delete(o.id); renderObs(); } })),
+      ...OBS_COLS.map(([k]) => { let v = o[k];
+        if (k === "gb") v = gbLabel(v); else if (k === "usd" || k === "fca") v = usd(v); else if (k === "sim") v = simCN(v); else if (k === "lock") v = v === "LK" ? "有锁" : "无锁";
+        else if (k === "grade") v = GRADE_CN[v] || v; else if (k === "src") v = DATA.sources[v] || v;
+        return el("td", { cls: NUMC.includes(k) ? "num" : "", text: v == null ? "" : String(v) }); }),
+      el("td", {}, ROLE === "view" ? null : el("button", { cls: "btn mini", text: "改", "aria-label": `修改第 ${o.id} 条`, onclick: () => { editingId = o.id; renderObs(); } }))]));
+  }
+  if (!shown.length) tb.append(el("tr", {}, el("td", { colspan: OBS_COLS.length + 2, cls: "empty", text: "没有记录" })));
+  tbl.append(tb);
+}
+// one record in edit mode: same columns, inputs where a value can be changed; derived columns (SIM, dollars) are recomputed on save
+function recEditRow(o) {
+  const f = {};
+  const inp = (k, v, cls, type = "text") => (f[k] = el("input", { cls, type, value: v == null ? "" : String(v), "aria-label": k }));
+  const cells = {
+    d: inp("date", o.d, "w-date", "date"),
+    src: (f.source = recSel(Object.entries(DATA.sources), o.src, "来源")),
+    model: (f.model = el("input", { cls: "w-model", list: "modelList", value: o.model, "aria-label": "型号" })),
+    gb: inp("gb", gbLabel(o.gb), "w-gb"),
+    version: (f.version = el("input", { cls: "w-ver", list: "verList", value: o.version || o.region || "", "aria-label": "版本" })),
+    sim: el("span", { cls: "flag", text: "自动" }),
+    lock: (f.lock = recSel([["UL", "无锁"], ["LK", "有锁"]], o.lock, "锁")),
+    grade_raw: el("span", { cls: "flag", text: o.grade_raw || "" }),
+    grade: (f.grade = recSel(GRADES.map((g) => [g, GRADE_CN[g] || g]), o.grade, "成色")),
+    color: inp("color", o.color, "w-model"),
+    qty: inp("qty", o.qty, "w-qty"),
+    price: inp("price", o.price, "w-price"),
+    cur: (f.currency = recSel(["USD", "HKD", "CNY", "AED", "CAD"].map((c) => [c, c]), o.cur, "币种")),
+    usd: el("span", { cls: "flag", text: "保存后重算" }), fca: el("span"),
+    cp: inp("counterparty", o.cp, "w-model"), note: inp("note", o.note, "w-model"),
+  };
+  const save = async () => {
+    const orig = { date: o.d, source: o.src, model: o.model, gb: gbLabel(o.gb), version: o.version || o.region || "", lock: o.lock, grade: o.grade,
+      color: o.color ?? "", qty: String(o.qty ?? ""), price: String(o.price), currency: o.cur, counterparty: o.cp ?? "", note: o.note ?? "" };
+    const changes = {};
+    for (const [k, node] of Object.entries(f)) if (String(node.value) !== String(orig[k] ?? "")) changes[k] = node.value;
+    if (!Object.keys(changes).length) { editingId = null; renderObs(); return; }
+    try {
+      const r = await api("/api/update", { ids: [o.id], changes });
+      if (r.errors.length) return toast("没改成：" + r.errors[0].msg, true);
+      editingId = null; toast("已修改，美元价格和到港口径已重算"); await reload();
+    } catch (e) { toast(e.message, true); }
+  };
+  return el("tr", { cls: "editing" }, [
+    el("td", {}),
+    ...OBS_COLS.map(([k]) => el("td", { cls: NUMC.includes(k) ? "num" : "" }, k === "id" ? String(o.id) : cells[k] || "")),
+    el("td", {}, el("div", { style: "display:flex;gap:4px" }, [el("button", { cls: "btn primary mini", text: "保存", onclick: save }),
+      el("button", { cls: "btn mini", text: "取消", onclick: () => { editingId = null; renderObs(); } })]))]);
+}
+function initRecBulk() {
+  $("#rbSrc").replaceChildren(el("option", { value: "", text: "来源不变" }), ...Object.entries(DATA.sources).map(([c, n]) => el("option", { value: c, text: n })));
+  $("#rbGrade").replaceChildren(el("option", { value: "", text: "成色不变" }), ...GRADES.map((g) => el("option", { value: g, text: GRADE_CN[g] || g })));
+}
+$("#rbApply").onclick = async () => {
+  const changes = { source: $("#rbSrc").value, version: $("#rbVer").value.trim(), lock: $("#rbLock").value, grade: $("#rbGrade").value, currency: $("#rbCur").value, date: $("#rbDate").value };
+  for (const k of Object.keys(changes)) if (!changes[k]) delete changes[k];
+  if (!Object.keys(changes).length) return toast("先选要改成什么", true);
+  if (changes.currency && !confirm("改币种只换币种，数字不变（比如 1000 USD 改成 1000 HKD）。确定吗？")) return;
+  try {
+    const r = await api("/api/update", { ids: [...picked], changes });
+    toast(`已修改 ${r.updated} 条` + (r.errors.length ? `，${r.errors.length} 条没改成：${r.errors[0].msg}` : ""), !!r.errors.length);
+    ["#rbSrc", "#rbLock", "#rbGrade", "#rbCur"].forEach((x) => $(x).value = ""); $("#rbVer").value = ""; $("#rbDate").value = "";
+    await reload();
+  } catch (e) { toast(e.message, true); }
+};
+$("#q").oninput = (e) => { state.q = e.target.value; renderObs(); };
+$("#fSrc").onchange = (e) => { state.src = e.target.value; renderObs(); };
+$("#delBtn").onclick = async () => {
+  if (!picked.size || !confirm(`确定删除这 ${picked.size} 条记录？删除后不能恢复。`)) return;
+  try { const r = await api("/api/delete", { ids: [...picked] }); picked.clear(); toast(`已删除 ${r.deleted} 条`); await reload(); } catch (e) { toast(e.message, true); }
+};
+$("#exportBtn").onclick = () => {
+  const rows = filteredObs().reverse();
+  const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const lines = [OBS_COLS.map(([, l]) => l).join(",")].concat(rows.map((o) => OBS_COLS.map(([k]) => esc(k === "src" ? DATA.sources[o[k]] || o[k] : o[k])).join(",")));
+  const a = el("a", { href: URL.createObjectURL(new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" })), download: `MICA价格记录_${DATA.today}.csv` });
+  document.body.append(a); a.click(); a.remove();
+};
+function renderUnmatched() {
+  const tbl = $("#unTbl"); tbl.replaceChildren();
+  $("#unCount").textContent = DATA.unmatched.length ? `（${DATA.unmatched.length} 行）` : "";
+  $("#unClear").disabled = !DATA.unmatched.length;
+  if (!DATA.unmatched.length) { tbl.append(el("tbody", {}, el("tr", {}, el("td", { cls: "empty", text: "没有" })))); return; }
+  tbl.append(el("thead", {}, el("tr", {}, ["时间", "来源", "原因", "原文", ""].map((t) => el("th", { text: t })))));
+  const tb = el("tbody");
+  for (const u of DATA.unmatched) tb.append(el("tr", {}, [el("td", { text: (u.t || "").replace("T", " ").slice(0, 16) }),
+    el("td", { text: DATA.sources[u.src] || u.src || "" }), el("td", { text: u.reason }), el("td", { text: u.raw, style: "white-space:normal" }),
+    el("td", {}, el("button", { cls: "btn", text: "删除", onclick: async () => { await api("/api/unmatched_delete", { ids: [u.id] }); await reload(); } }))]));
+  tbl.append(tb);
+}
+$("#unClear").onclick = async () => { if (!confirm("清空所有没认出来的行？")) return; await api("/api/unmatched_delete", { all: true }); await reload(); };
+
+// ============================== settings
+let OCR = null;
+async function loadOcr(res) {
+  OCR = res || await api("/api/ocr_settings", {});
+  OCR.sel = OCR.sel || OCR.provider || "";
+  const box = $("#provs"); box.replaceChildren();
+  for (const p of OCR.providers) box.append(el("label", { cls: "prov" }, [
+    el("input", { type: "radio", name: "prov", value: p.code, checked: OCR.sel === p.code, onchange: () => { OCR.sel = p.code; renderOcrForm(); } }),
+    el("div", {}, [el("b", { text: p.name + (OCR.provider === p.code ? "（当前使用）" : "") }), el("small", { text: p.hint })])]));
+  renderOcrForm();
+}
+function renderOcrForm() {
+  const f = $("#ocrForm"); f.replaceChildren();
+  const p = OCR.providers.find((x) => x.code === OCR.sel);
+  if (!p) { f.append(el("div", { cls: "h", text: "选一个识别引擎" })); return; }
+  if (p.kind === "openai") f.append(el("div", { cls: "lab", text: "本地 API 地址" }), el("div", {}, el("input", { id: "ocrBase", value: p.base, placeholder: "例如 http://127.0.0.1:11434/v1" })), el("div", { cls: "h", text: "以 /v1 结尾" }));
+  f.append(el("div", { cls: "lab", text: "模型名" }), el("div", {}, el("input", { id: "ocrModel", value: p.model, placeholder: "例如 qwen3-vl:32b" })), el("div", { cls: "h", text: p.kind === "anthropic" ? "默认 claude-haiku-5-5（最便宜）" : "和 Strata / Ollama 里显示的名字一致" }));
+  f.append(el("div", { cls: "lab", text: p.kind === "anthropic" ? "API 密钥" : "API 密钥（可选）" }),
+    el("div", {}, el("input", { id: "ocrKey", type: "password", placeholder: p.hasKey ? "已保存（不改就留空）" : p.kind === "anthropic" ? "sk-ant-…" : "本地一般不用填" })),
+    el("div", { cls: "h", text: "只保存在你电脑上的数据库文件里" }));
+}
+async function saveOcr() {
+  const p = OCR.providers.find((x) => x.code === OCR.sel);
+  if (!p) throw new Error("先选一个识别引擎");
+  const key = $("#ocrKey").value;
+  const res = await api("/api/ocr_settings", { save: true, provider: p.code, base: $("#ocrBase") ? $("#ocrBase").value : "", model: $("#ocrModel").value, key: key || (p.hasKey ? "••••••" : "") });
+  res.sel = p.code; await loadOcr(res); return res;
+}
+$("#ocrSave").onclick = async () => { try { await saveOcr(); toast("识别设置已保存"); } catch (e) { toast(e.message, true); } };
+$("#ocrTest").onclick = async () => {
+  const out = $("#ocrResult"); out.textContent = "测试中……";
+  try { await saveOcr(); const r = await api("/api/ocr_test", {}); out.textContent = `✓ 连接成功：${r.name} / ${r.model}，模型回复「${r.reply}」`; }
+  catch (e) { out.textContent = "✗ " + e.message; }
+};
+// ---------- recognition test set
+function padUrl(url) { return padImage(url); }
+$("#stRun").onclick = async () => {
+  const btn = $("#stRun"), info = $("#stInfo"), tbl = $("#stTbl");
+  btn.disabled = true; tbl.replaceChildren();
+  const head = el("thead", {}, el("tr", {}, ["测试截图", "应有", "全对", "需核对", "漏掉", "错误行·已标出", "错误行·没标出", "用时"].map((t, i) => el("th", { cls: i ? "num" : "", text: t }))));
+  const body = el("tbody"); tbl.append(head, body);
+  try {
+    const { fixtures } = await api("/api/selftest_list", {});
+    let tot = { n: 0, exact: 0 };
+    for (const [i, fx] of fixtures.entries()) {
+      info.textContent = `正在测试第 ${i + 1} / ${fixtures.length} 张：${fx.title}……`;
+      const t0 = performance.now();
+      const blob = await (await fetch("/fixtures/" + fx.image)).blob();
+      const raw = await new Promise((ok) => { const rd = new FileReader(); rd.onload = () => ok(rd.result); rd.readAsDataURL(blob); });
+      const padded = await padImage(raw);
+      let res, score;
+      try {
+        res = await api("/api/preview", { source: "hk_ask", images: [{ name: fx.image, mime: "image/png", b64: padded.split(",")[1] }],
+          region: fx.defaults.version || "", grade: fx.defaults.grade || "", currency: "", date: DATA.today || "" });
+        score = await api("/api/selftest_score", { name: fx.name, rows: res.rows });
+      } catch (e) {
+        body.append(el("tr", {}, [el("td", { text: fx.title }), el("td", { colspan: 7, text: "出错：" + e.message })])); continue;
+      }
+      const secs = ((performance.now() - t0) / 1000).toFixed(0) + " 秒";
+      tot.n += score.n; tot.exact += score.exact;
+      const tr = el("tr", {}, [el("td", { text: fx.title, title: fx.note }), el("td", { cls: "num", text: score.n }),
+        el("td", { cls: "num" }, el("span", { cls: "pill " + (score.exact === score.n ? "good" : "flat"), text: `${score.exact}` })),
+        el("td", { cls: "num", text: score.flagged }), el("td", { cls: "num", text: score.missing.length }), el("td", { cls: "num", text: score.extra.length - score.extra_unflagged.length }),
+        el("td", { cls: "num" }, el("span", { cls: "pill " + (score.extra_unflagged.length ? "bad" : "flat"), text: String(score.extra_unflagged.length) })), el("td", { cls: "num", text: secs })]);
+      tot.slipped = (tot.slipped || 0) + score.extra_unflagged.length;
+      body.append(tr);
+      if (score.missing.length || score.extra.length)
+        body.append(el("tr", {}, el("td", { colspan: 8, cls: "flag", style: "white-space:normal",
+          text: (score.missing.length ? "漏掉/读错：" + score.missing.slice(0, 6).join("；") + (score.missing.length > 6 ? "……" : "") : "") +
+                (score.extra.length ? "　错误行：" + score.extra.slice(0, 4).join("；") : "") })));
+    }
+    info.textContent = `完成：一共 ${tot.n} 行，全对 ${tot.exact} 行（${tot.n ? (tot.exact / tot.n * 100).toFixed(1) : 0}%）。` +
+      `识别错的行里，没被程序标出来的有 ${tot.slipped || 0} 行` + ((tot.slipped || 0) ? "（要重点看）" : "（错误都已标黄或标红）") + "。";
+  } catch (e) { info.textContent = "✗ " + e.message; }
+  finally { btn.disabled = false; }
+};
+async function loadSettings(res) {
+  const s = res || await api("/api/settings", {});
+  const f = $("#costForm"); f.replaceChildren();
+  for (const c of s.costs) f.append(el("div", { cls: "lab", text: c.label }),
+    el("div", { cls: "unit" }, [c.pct ? null : "$", el("input", { type: "number", step: "any", min: "0", "data-key": c.key, value: c.value == null ? "" : c.value, placeholder: "未填" }), c.pct ? "%" : "/ 台"]),
+    el("div", { cls: "h", text: c.hint }));
+  $("#cad").value = s.cad ?? ""; $("#cadDate").textContent = s.cadDate ? `上次设置：${s.cadDate}` : "还没设置";
+  $("#cny").value = s.cny ?? ""; $("#cnyDate").textContent = s.cnyDate ? `上次设置：${s.cnyDate}` : "还没设置";
+}
+async function loadShare(res) {
+  let r = res;
+  try { r = r || await api("/api/share", {}); } catch (e) { return; }
+  $("#shOn").checked = r.on;
+  $("#shView").value = ""; $("#shEdit").value = "";
+  $("#shView").placeholder = r.hasView ? "已设置（不改就留空）" : "至少 4 位";
+  $("#shEdit").placeholder = r.hasEdit ? "已设置（不改就留空）" : "不设就留空";
+  $("#shClearEdit").hidden = !r.hasEdit;
+  const box = $("#shStatus"); box.replaceChildren(); box.hidden = !r.on;
+  if (r.on) {
+    if (r.urls.length) {
+      box.append(el("div", { text: "同一网络里的其他电脑、手机，在浏览器地址栏输入：" }));
+      for (const u of r.urls) box.append(el("div", { cls: "u" }, [el("code", { text: u }),
+        el("button", { cls: "btn mini", text: "复制", onclick: () => navigator.clipboard?.writeText(u).then(() => toast("已复制")) })]));
+      box.append(el("div", { cls: "hint", style: "margin:8px 0 0", text: `也可以试试用电脑名：${r.name}。` +
+        "第一次开启时 Windows 可能弹出防火墙提示，要勾选「专用网络」并点「允许」，否则别人打不开。如果路由器每次给这台电脑分的地址不一样，上面的地址会变，可以在路由器里给它固定一个地址。" }));
+      box.append(el("div", { cls: "hint", style: "margin:6px 0 0", text: "注意：局域网里传输没有加密，只在自己公司 / 家里的网络开，不要在酒店、咖啡店这类公共网络开。" }));
+    }
+    if (r.error) box.append(el("div", { style: "color:var(--bad);margin-top:6px", text: r.error }));
+  }
+}
+async function saveShare(extra = {}) {
+  try {
+    const r = await api("/api/share", { save: true, on: $("#shOn").checked, view_pw: $("#shView").value, edit_pw: $("#shEdit").value, ...extra });
+    await loadShare(r); toast(r.on ? "已开启局域网共享" : "已关闭局域网共享");
+    applyRole("local", r);
+  } catch (e) { toast(e.message, true); }
+}
+$("#shSave").onclick = () => saveShare();
+async function loadAutostart() {
+  try {
+    const r = await api("/api/autostart", {});
+    $("#asOn").checked = r.on; $("#asOn").disabled = !r.supported;
+    $("#asInfo").textContent = !r.supported ? "只有 Windows 电脑能用" : r.on ? "已开启：下次开机会自动在后台运行" : "";
+  } catch (e) {}
+}
+$("#asOn").onchange = async (e) => {
+  try { const r = await api("/api/autostart", { on: e.target.checked }); await loadAutostart(); toast(r.on ? "已设置开机自动运行" : "已取消开机自动运行"); }
+  catch (err) { toast(err.message, true); loadAutostart(); }
+};
+$("#quitBtn").onclick = async () => {
+  if (!confirm("退出后，这台电脑和局域网里的人都打不开工作台，直到你再启动程序。确定退出吗？")) return;
+  try { await api("/api/quit", {}); } catch (e) {}
+  document.body.replaceChildren(el("div", { cls: "empty", style: "padding:80px 16px", text: "程序已退出。要再用，双击 START.bat（显示黑色窗口）或 START_BACKGROUND.bat（后台运行）。" }));
+};
+let clPoll;
+async function loadCloud(res) {
+  let r = res;
+  try { r = r || await api("/api/cloud", {}); } catch (e) { return; }
+  $("#clRepo").value = r.repo || "";
+  $("#clDomain").value = r.domain || "";
+  $("#clToken").placeholder = r.hasToken ? "已保存（不改就留空）" : "github_pat_…";
+  $("#clPw").placeholder = r.hasPw ? "已设置（不改就留空）" : "至少 10 位";
+  $("#clAuto").checked = r.auto;
+  const box = $("#clStatus"); box.replaceChildren(); box.hidden = !(r.url || r.msg || r.busy);
+  if (r.url) box.append(el("div", { cls: "u" }, ["网址：", el("code", { text: r.url }),
+    el("button", { cls: "btn mini", text: "复制", onclick: () => navigator.clipboard?.writeText(r.url).then(() => toast("已复制")) }),
+    el("a", { href: r.url, target: "_blank", rel: "noopener", text: "打开看看" })]));
+  if (r.busy) box.append(el("div", { text: "正在上传……" }));
+  else if (r.msg) box.append(el("div", { style: r.ok ? "" : "color:var(--bad)", text: (r.last ? `${r.last}：` : "") + r.msg }));
+  if (r.next && !r.busy) box.append(el("div", { cls: "hint", style: "margin:4px 0 0", text: `下一次自动上传约在 ${r.next}` }));
+  clearTimeout(clPoll);
+  if (r.busy && !$("#tab-settings").hidden) clPoll = setTimeout(() => loadCloud(), 2500);
+}
+$("#clSave").onclick = async () => {
+  try {
+    const r = await api("/api/cloud", { save: true, repo: $("#clRepo").value, domain: $("#clDomain").value, token: $("#clToken").value, pw: $("#clPw").value, auto: $("#clAuto").checked });
+    $("#clToken").value = ""; $("#clPw").value = ""; await loadCloud(r); toast("已保存");
+  } catch (e) { toast(e.message, true); }
+};
+$("#clSync").onclick = async () => { try { await loadCloud(await api("/api/cloud", { sync: true })); } catch (e) { toast(e.message, true); } };
+$("#shClearEdit").onclick = () => { if (confirm("取消修改密码后，局域网里的人都只能看、不能改。确定吗？")) saveShare({ clear_edit: true }); };
+$("#setSave").onclick = async () => {
+  const costs = {}; document.querySelectorAll("#costForm input").forEach((i) => costs[i.dataset.key] = i.value);
+  try { const res = await api("/api/settings", { save: true, costs, cad: $("#cad").value, cny: $("#cny").value }); await loadSettings(res); toast("已保存，历史记录已按新设置重算"); await reload(); }
+  catch (e) { toast(e.message, true); }
+};
+
+
+// ============================== price charts (free-form)
+// Each line = a set of filters. Colours follow the line (slot fixed when the line is made), never its rank.
+const C_SLOTS = 8;
+const C_DIMS = [["model", "型号"], ["gb", "容量"], ["vg", "版本"], ["lock", "锁"], ["grade", "成色"], ["src", "来源"], ["color", "颜色"]];
+const GRP_CN = { buy: "北美买入", HK: "香港卖出", AE: "迪拜卖出", ref: "参考价", other: "其他来源" };
+const C_AGG_CN = { avg: "平均", min: "最低", max: "最高", med: "中位数", last: "最新一条" };
+const grpOf = (o) => o.role === "buy" && o.mkt === "NA" ? "buy" : o.role === "sell" && (o.mkt === "HK" || o.mkt === "AE") ? o.mkt : o.role === "ref" ? "ref" : "other";
+const cs = (() => { let saved = null; try { saved = JSON.parse(localStorage.getItem("mica_chart") || "null"); } catch (e) {}
+  return Object.assign({ days: 30, from: "", to: "", metric: "usd", agg: "avg", type: "line", pts: false, lines: [] }, saved || {}); })();
+function cSaveLocal() { try { localStorage.setItem("mica_chart", JSON.stringify(cs)); } catch (e) {} }
+const lockCN = (v) => v === "LK" ? "有锁" : v === "UL" ? "无锁" : v;
+function cValLabel(dim, v) {
+  if (dim === "gb") return gbLabel(+v);
+  if (dim === "lock") return lockCN(v);
+  if (dim === "grade") return GRADE_CN[v] || v;
+  if (dim === "src") return v.startsWith("g:") ? GRP_CN[v.slice(2)] : (DATA.sources[v] || v);
+  if (dim === "grp") return GRP_CN[v] || v;
+  return String(v);
+}
+function cRangeOK(o) {
+  const from = cs.from || (cs.days ? new Date(Date.parse(DATA.today) - cs.days * 864e5).toISOString().slice(0, 10) : "0000");
+  return o.d >= from && (!cs.to || o.d <= cs.to);
+}
+const cField = (o, dim) => dim === "vg" ? (o.vg || o.region) : dim === "gb" ? String(o.gb) : dim === "grp" ? grpOf(o) : o[dim];
+function cMatch(o, ln, skip) {
+  for (const [dim] of C_DIMS) {
+    if (dim === skip || !ln[dim]) continue;
+    if (dim === "src") { if (ln.src.startsWith("g:") ? grpOf(o) !== ln.src.slice(2) : o.src !== ln.src) return false; }
+    else if (String(cField(o, dim) ?? "") !== String(ln[dim])) return false;
+  }
+  return true;
+}
+const cVal = (o) => cs.metric === "fca" ? o.fca : o.usd;
+function cLineLabel(ln) {
+  const parts = C_DIMS.filter(([d]) => ln[d]).map(([d]) => cValLabel(d, ln[d]));
+  return parts.length ? parts.join(" · ") : "全部报价";
+}
+function cFreeSlot() { const used = new Set(cs.lines.map((l) => l.slot)); for (let i = 0; i < C_SLOTS; i++) if (!used.has(i)) return i; return -1; }
+const cColor = (slot) => `var(--c${slot + 1})`;
+
+function cDefaultLine() {
+  const rows = DATA.obs.filter(cRangeOK).length ? DATA.obs.filter(cRangeOK) : DATA.obs;
+  const count = (f) => { const m = new Map(); for (const o of rows) { const k = f(o); m.set(k, (m.get(k) || 0) + 1); } return [...m].sort((a, b) => b[1] - a[1]); };
+  const model = (count((o) => o.model)[0] || [""])[0];
+  const gb = (count((o) => o.model === model ? String(o.gb) : null).find(([k]) => k) || [""])[0];
+  return { model, gb: gb || "", vg: "", lock: "", grade: "", src: "", color: "" };
+}
+function cAddLine(ln) {
+  const slot = cFreeSlot(); if (slot < 0) { toast(`最多同时画 ${C_SLOTS} 条线，先删掉一条`, true); return false; }
+  cs.lines.push(Object.assign({ model: "", gb: "", vg: "", lock: "", grade: "", src: "", color: "" }, ln, { slot }));
+  return true;
+}
+
+// one pass over the records per line: for each filter, how many quotes each choice would give
+// (a record that fails only filter X still counts toward X's choices)
+function cLineCounts(ln, rows) {
+  const dims = C_DIMS.map(([d]) => d), out = {};
+  for (const d of dims) out[d] = { pool: 0, cnt: new Map(), gcnt: new Map() };
+  let n = 0;
+  for (const o of rows) {
+    let miss = null, two = false;
+    for (const d of dims) {
+      if (!ln[d]) continue;
+      const ok = d === "src" ? (ln.src.startsWith("g:") ? grpOf(o) === ln.src.slice(2) : o.src === ln.src) : String(cField(o, d) ?? "") === String(ln[d]);
+      if (!ok) { if (miss) { two = true; break; } miss = d; }
+    }
+    if (two) continue;
+    if (!miss && cVal(o) != null) n++;
+    for (const d of miss ? [miss] : dims) {
+      const e = out[d]; e.pool++;
+      const v = d === "src" ? o.src : cField(o, d);
+      if (v != null && v !== "") e.cnt.set(String(v), (e.cnt.get(String(v)) || 0) + 1);
+      if (d === "src") { const g = grpOf(o); e.gcnt.set(g, (e.gcnt.get(g) || 0) + 1); }
+    }
+  }
+  return { out, n };
+}
+const C_GEN = () => new Map(DATA.obs.map((o) => [o.model, o.gen]));
+// all known values of a filter: every source you have set up, every model in the model list, everything ever recorded
+function cUniverse(dim) {
+  const set = new Set();
+  if (dim === "src") Object.keys(DATA.sources || {}).forEach((k) => set.add(k));
+  if (dim === "model") (MODELS || []).forEach((m) => set.add(typeof m === "string" ? m : m.name || m.model));
+  if (dim === "grade") GRADES.forEach((g) => set.add(g));
+  if (dim === "lock") ["UL", "LK"].forEach((g) => set.add(g));
+  for (const o of DATA.obs) { const v = dim === "src" ? o.src : cField(o, dim); if (v != null && v !== "") set.add(String(v)); }
+  set.delete(undefined);
+  const vals = [...set];
+  if (dim === "gb") vals.sort((a, b) => a - b);
+  else if (dim === "grade") vals.sort((a, b) => GRADES.indexOf(a) - GRADES.indexOf(b));
+  else if (dim === "model") { const gen = C_GEN(); vals.sort((a, b) => (gen.get(b) || +((b.match(/\d+/) || [0])[0])) - (gen.get(a) || +((a.match(/\d+/) || [0])[0])) || (a < b ? -1 : 1)); }
+  else vals.sort((a, b) => cValLabel(dim, a).localeCompare(cValLabel(dim, b), "zh"));
+  return vals;
+}
+function renderChartLines() {
+  const box = $("#cLines"); box.replaceChildren();
+  const inRange = DATA.obs.filter(cRangeOK), gen = C_GEN();
+  cs.lines.forEach((ln, i) => {
+    const LC = cLineCounts(ln, inRange);
+    const row = el("div", { cls: "cline" }), sels = el("div", { cls: "csels" }), side = el("div", { cls: "cside" });
+    row.append(el("span", { cls: "ckey", style: `background:${cColor(ln.slot)}`, title: `第 ${i + 1} 条线` }), sels, side);
+    for (const [dim, label] of C_DIMS) {
+      const { pool, cnt, gcnt } = LC.out[dim];
+      let vals = [...cnt.keys()];
+      if (dim === "model") { vals.sort((a, b) => (gen.get(b) || 0) - (gen.get(a) || 0) || (a < b ? -1 : 1)); }
+      else if (dim === "gb") vals.sort((a, b) => a - b);
+      else if (dim === "grade") vals.sort((a, b) => GRADES.indexOf(a) - GRADES.indexOf(b));
+      else vals.sort((a, b) => cnt.get(b) - cnt.get(a));
+      const sel = el("select", { "aria-label": label, onchange: (e) => { ln[dim] = e.target.value; cRender(); } });
+      sel.append(el("option", { value: "", text: `${label}：全部 (${pool})` }));
+      // every choice is listed: the ones with quotes under this line's other filters first, the rest after them with (0)
+      const rest = cUniverse(dim).filter((v) => !cnt.has(v));
+      if (ln[dim] && !ln[dim].startsWith?.("g:") && !cnt.has(String(ln[dim])) && !rest.includes(String(ln[dim]))) rest.unshift(String(ln[dim]));
+      if (dim === "src") {
+        const og = el("optgroup", { label: "按市场" });
+        for (const g of Object.keys(GRP_CN)) og.append(el("option", { value: "g:" + g, text: `${GRP_CN[g]} (${gcnt.get(g) || 0})` }));
+        sel.append(og);
+        const os = el("optgroup", { label: "按来源" });
+        for (const v of vals) os.append(el("option", { value: v, text: `${cValLabel("src", v)} (${cnt.get(v)})` }));
+        sel.append(os);
+      } else {
+        for (const v of vals) sel.append(el("option", { value: v, text: `${cValLabel(dim, v)} (${cnt.get(v)})` }));
+      }
+      if (rest.length) {
+        const og0 = el("optgroup", { label: "这条线的其他条件下没有报价" });
+        for (const v of rest) og0.append(el("option", { value: v, text: `${cValLabel(dim, v)} (0)` }));
+        sel.append(og0);
+      }
+      sel.value = ln[dim] || "";
+      if (ln[dim]) sel.classList.add("on");
+      sels.append(sel);
+    }
+    const n = LC.n;
+    side.append(el("span", { cls: "cn" + (n ? "" : " zero"), text: n ? `${n} 条报价` : "没有报价" }));
+    side.append(el("button", { cls: "btn", text: "复制", title: "复制这条线，再改一两个条件来对比", onclick: () => { if (cAddLine({ ...ln })) cRender(); } }));
+    side.append(el("button", { cls: "btn", text: "删除", "aria-label": `删除第 ${i + 1} 条线`, onclick: () => { cs.lines.splice(i, 1); cRender(); } }));
+    box.append(row);
+  });
+  if (!cs.lines.length) box.append(el("div", { cls: "empty", text: "还没有线。点「+ 添加一条线」开始。" }));
+  const sl = $("#cSplitLine"); sl.replaceChildren(...cs.lines.map((ln, i) => el("option", { value: i, text: `第 ${i + 1} 条线` })));
+  $("#cSplit").disabled = !cs.lines.length; $("#cAdd").disabled = cs.lines.length >= C_SLOTS;
+}
+
+function cAggregate(vals) {
+  if (!vals.length) return null;
+  const v = vals.map((x) => x.v);
+  if (cs.agg === "min") return Math.min(...v);
+  if (cs.agg === "max") return Math.max(...v);
+  if (cs.agg === "last") return vals.reduce((a, b) => (b.id > a.id ? b : a)).v;
+  if (cs.agg === "med") { const s = v.slice().sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+  return v.reduce((a, b) => a + b, 0) / v.length;
+}
+function cSeries() {
+  const rows = DATA.obs.filter((o) => cRangeOK(o) && cVal(o) != null);
+  return cs.lines.map((ln) => {
+    const mine = rows.filter((o) => cMatch(o, ln));
+    const byDay = new Map();
+    for (const o of mine) { if (!byDay.has(o.d)) byDay.set(o.d, []); byDay.get(o.d).push({ v: cVal(o), id: o.id }); }
+    const pts = [...byDay].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([d, arr]) => [d, cAggregate(arr)]);
+    const all = mine.map((o) => ({ v: cVal(o), id: o.id }));
+    return { ln, label: cLineLabel(ln), color: cColor(ln.slot), raw: mine, pts, day: new Map(pts), total: cAggregate(all) };
+  });
+}
+function cShorten(S) {
+  const same = C_DIMS.filter(([d]) => S.length > 1 && S.every((s) => String(s.ln[d] || "") === String(S[0].ln[d] || "")));
+  const common = same.filter(([d]) => S[0].ln[d]).map(([d]) => cValLabel(d, S[0].ln[d])).join(" · ");
+  S.forEach((s, i) => {
+    const own = C_DIMS.filter(([d]) => !same.some(([x]) => x === d)).map(([d, l]) => s.ln[d] ? cValLabel(d, s.ln[d]) : (S.length > 1 ? `${l}全部` : "")).filter(Boolean);
+    s.label = S.length > 1 ? (own.join(" · ") || `线 ${i + 1}`) : cLineLabel(s.ln);
+  });
+  return S.length > 1 ? common : S.length ? cLineLabel(S[0].ln) : "";
+}
+const cSvg = (tag, attrs) => { const n = document.createElementNS("http://www.w3.org/2000/svg", tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+const cText = (attrs, txt) => { const t = cSvg("text", attrs); t.textContent = txt; return t; };
+const cMoney = (v) => v == null ? "–" : "$" + Math.round(v).toLocaleString("en-US");
+
+function renderChartView() {
+  const host = $("#cChart"), tip = $("#cTip");
+  host.querySelectorAll("svg, .empty").forEach((n) => n.remove());
+  tip.style.display = "none";
+  const S = cSeries(), common = cShorten(S), live = S.filter((s) => s.raw.length);
+  const metricCN = cs.metric === "fca" ? "到港美元（FCA 香港口径，含费用）" : "美元单价";
+  $("#cAggLab").textContent = cs.type === "bar" ? "整段时间取" : "每天取";
+  $("#cPtsLab").hidden = cs.type !== "line";
+  $("#cTitle").textContent = (cs.type === "bar" ? "价格对比" : "价格走势") + (common ? " · " + common : "");
+  $("#cSub").textContent = cs.type === "bar"
+    ? `每台${metricCN}。圆点是所选时间范围内的${C_AGG_CN[cs.agg]}价，浅色横条是最低到最高的范围`
+    : `每台${metricCN}，同一天有多条报价时取${C_AGG_CN[cs.agg]}` + (cs.pts ? "；空心点是每一条原始报价" : "");
+  const lg = $("#cLegend"); lg.replaceChildren();
+  if (S.length >= 2 || cs.type === "bar") for (const s of S) lg.append(el("span", {}, [el("i", { style: `background:${s.color}` }), s.label + (s.raw.length ? "" : "（没有报价）")]));
+  renderChartTables(S);
+  if (!live.length) { host.prepend(el("div", { cls: "empty", text: cs.lines.length ? "这些线在所选时间范围里都没有报价。换个时间范围，或者把条件放宽（改成「全部」）。" : "先在上面添加一条线。" })); return; }
+  if ($("#tab-chart").hidden) return;
+  if (cs.type === "bar") return drawBars(host, tip, live);
+  drawLines(host, tip, live);
+}
+
+function drawLines(host, tip, S) {
+  const dates = [...new Set(S.flatMap((s) => s.pts.map(([d]) => d)))].sort();
+  const vals = S.flatMap((s) => s.pts.map(([, v]) => v)).concat(cs.pts ? S.flatMap((s) => s.raw.map(cVal)) : []);
+  const W = Math.max(320, host.clientWidth), H = W < 600 ? 260 : 340;
+  const labelEnds = S.length <= 4 && W >= 600;
+  const m = { t: 14, r: labelEnds ? 120 : 16, b: 28, l: 60 };
+  const x0 = dayNum(dates[0]) - (dates.length === 1 ? 1 : 0), x1 = dayNum(dates[dates.length - 1]) + (dates.length === 1 ? 1 : 0);
+  const lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.08 || hi * 0.05 || 1;
+  const yt = niceTicks(lo - pad, hi + pad, 5), y0 = yt[0], y1 = yt[yt.length - 1];
+  const X = (d) => m.l + (dayNum(d) - x0) / (x1 - x0 || 1) * (W - m.l - m.r);
+  const Y = (v) => m.t + (1 - (v - y0) / (y1 - y0 || 1)) * (H - m.t - m.b);
+  const svg = cSvg("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": "价格走势图，" + S.map((s) => s.label).join("；") });
+  for (const v of yt) {
+    svg.append(cSvg("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 }));
+    svg.append(cText({ x: m.l - 8, y: Y(v) + 4, "text-anchor": "end", fill: "var(--muted)", "font-size": 11, class: "tnum" }, v >= 10000 ? "$" + (v / 1000).toLocaleString("en-US") + "K" : "$" + v.toLocaleString("en-US")));
+  }
+  svg.append(cSvg("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1 }));
+  const every = Math.max(1, Math.ceil(dates.length / Math.max(2, Math.floor((W - m.l - m.r) / 70))));
+  dates.forEach((d, i) => { if (i % every && i !== dates.length - 1) return; if (i === dates.length - 1 && i % every && dates.length > 1 && X(d) - X(dates[i - (i % every)]) < 50) return;
+    svg.append(cText({ x: X(d), y: H - 8, "text-anchor": "middle", fill: "var(--muted)", "font-size": 11 }, d.slice(5))); });
+  if (cs.pts) for (const s of S) for (const o of s.raw) {
+    svg.append(cSvg("circle", { cx: X(o.d), cy: Y(cVal(o)), r: 3.5, fill: "var(--surface)", stroke: s.color, "stroke-width": 1.5, opacity: 0.75 }));
+  }
+  for (const s of S) {
+    if (s.pts.length > 1) svg.append(cSvg("path", { d: s.pts.map(([d, v], i) => (i ? "L" : "M") + X(d).toFixed(1) + " " + Y(v).toFixed(1)).join(" "),
+      fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    for (const [d, v] of s.pts) svg.append(cSvg("circle", { cx: X(d), cy: Y(v), r: 4, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 }));
+  }
+  if (labelEnds) {  // end labels only while they don't collide; otherwise legend + tooltip carry identity
+    const ends = S.map((s) => { const [d, v] = s.pts[s.pts.length - 1]; return { s, y: Y(v), v }; }).sort((a, b) => a.y - b.y);
+    const clash = ends.some((e, i) => i && e.y - ends[i - 1].y < 14);
+    if (!clash) for (const e of ends) {
+      svg.append(cSvg("line", { x1: W - m.r + 4, x2: W - m.r + 14, y1: e.y, y2: e.y, stroke: e.s.color, "stroke-width": 2 }));
+      svg.append(cText({ x: W - m.r + 18, y: e.y + 4, fill: "var(--ink-2)", "font-size": 11.5, class: "tnum" }, cMoney(e.v)));
+    }
+  }
+  const cross = cSvg("line", { y1: m.t, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1, visibility: "hidden" }); svg.append(cross);
+  const hit = cSvg("rect", { x: m.l - 10, y: 0, width: W - m.l - m.r + 20, height: H, fill: "transparent", tabindex: 0, "aria-label": "把鼠标移到图上看每天的价格" }); svg.append(hit);
+  let cur = dates.length - 1;
+  const show = (i) => {
+    cur = Math.max(0, Math.min(dates.length - 1, i)); const d = dates[cur], r = svg.getBoundingClientRect();
+    cross.setAttribute("x1", X(d)); cross.setAttribute("x2", X(d)); cross.setAttribute("visibility", "visible");
+    tip.replaceChildren(el("div", { cls: "t", text: d }));
+    for (const s of S) { const v = s.day.get(d); const n = s.raw.filter((o) => o.d === d).length;
+      tip.append(el("div", { cls: "r" }, [el("b", { text: v == null ? "–" : cMoney(v) }), el("span", { cls: "l" }, [el("i", { style: `background:${s.color}` }), s.label + (n > 1 ? `（${n} 条）` : "")])])); }
+    const sx = X(d) / W * r.width; tip.style.display = "block";
+    const tw = tip.offsetWidth; tip.style.left = Math.max(0, sx + 14 + tw > r.width ? sx - tw - 14 : sx + 14) + "px"; tip.style.top = "8px";
+  };
+  hit.addEventListener("mousemove", (evt) => { const r = svg.getBoundingClientRect(), px = (evt.clientX - r.left) * (W / r.width);
+    let best = 0; dates.forEach((d, i) => { if (Math.abs(X(d) - px) < Math.abs(X(dates[best]) - px)) best = i; }); show(best); });
+  hit.addEventListener("focus", () => show(cur));
+  hit.addEventListener("keydown", (e) => { if (e.key === "ArrowLeft") { show(cur - 1); e.preventDefault(); } if (e.key === "ArrowRight") { show(cur + 1); e.preventDefault(); } });
+  const hide = () => { tip.style.display = "none"; cross.setAttribute("visibility", "hidden"); };
+  hit.addEventListener("mouseleave", hide); hit.addEventListener("blur", hide);
+  host.prepend(svg);
+}
+
+function drawBars(host, tip, S) {
+  // range plot: a light band from lowest to highest quote, a dot at the chosen value. No zero baseline needed.
+  const W = Math.max(320, host.clientWidth), rowH = 40, narrow = W < 600;
+  const m = { t: 8, r: 24, b: 26, l: narrow ? 110 : Math.min(300, Math.max(150, W * 0.28)) };
+  const H = m.t + m.b + rowH * S.length;
+  const ext = S.map((s) => { const v = s.raw.map(cVal); return [Math.min(...v), Math.max(...v)]; });
+  const lo = Math.min(...ext.map((e) => e[0])), hi = Math.max(...ext.map((e) => e[1])), pad = (hi - lo) * 0.06 || hi * 0.03 || 1;
+  const xt = niceTicks(lo - pad, hi + pad, narrow ? 3 : 6), x0 = xt[0], x1 = xt[xt.length - 1];
+  const X = (v) => m.l + (v - x0) / (x1 - x0 || 1) * (W - m.l - m.r);
+  const svg = cSvg("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": "价格对比图，" + S.map((s) => `${s.label} ${cMoney(s.total)}`).join("；") });
+  for (const v of xt) {
+    svg.append(cSvg("line", { x1: X(v), x2: X(v), y1: m.t, y2: H - m.b, stroke: "var(--grid)", "stroke-width": 1 }));
+    svg.append(cText({ x: X(v), y: H - 8, "text-anchor": "middle", fill: "var(--muted)", "font-size": 11, class: "tnum" }, "$" + v.toLocaleString("en-US")));
+  }
+  S.forEach((s, i) => {
+    const yc = m.t + rowH * i + rowH / 2, [a, b] = ext[i], x = X(s.total);
+    const maxCh = Math.floor((m.l - 12) / 12.5), lab = s.label.length > maxCh ? s.label.slice(0, maxCh - 1) + "…" : s.label;
+    const g = cSvg("g", { tabindex: 0, class: "cbar" });
+    g.append(cText({ x: m.l - 12, y: yc + 4, "text-anchor": "end", fill: "var(--ink-2)", "font-size": 12 }, lab));
+    g.append(cSvg("rect", { x: X(a), y: yc - 5, width: Math.max(4, X(b) - X(a)), height: 10, rx: 5, fill: s.color, opacity: 0.25 }));
+    g.append(cSvg("circle", { cx: x, cy: yc, r: 6, fill: s.color, stroke: "var(--surface)", "stroke-width": 2 }));
+    const right = x + 12 + 60 < W;
+    g.append(cText({ x: right ? x + 12 : x - 12, y: yc - 9, "text-anchor": right ? "start" : "end", fill: "var(--ink)", "font-size": 12, "font-weight": 600, class: "tnum" }, cMoney(s.total)));
+    g.append(cSvg("rect", { x: 0, y: yc - rowH / 2, width: W, height: rowH, fill: "transparent" }));
+    const show = () => {
+      const rb = svg.getBoundingClientRect();
+      tip.replaceChildren(el("div", { cls: "t", text: cLineLabel(s.ln) }),
+        el("div", { cls: "r" }, [el("b", { text: cMoney(s.total) }), el("span", { cls: "l", text: C_AGG_CN[cs.agg] })]),
+        el("div", { cls: "r" }, [el("b", { text: `${cMoney(a)} – ${cMoney(b)}` }), el("span", { cls: "l", text: "最低 – 最高" })]),
+        el("div", { cls: "r" }, [el("b", { text: String(s.raw.length) }), el("span", { cls: "l", text: "条报价" })]));
+      tip.style.display = "block";
+      tip.style.left = Math.max(0, Math.min(rb.width - tip.offsetWidth, x / W * rb.width + 14)) + "px"; tip.style.top = (yc / H * rb.height + 16) + "px";
+      g.classList.add("hov");
+    };
+    const hide = () => { tip.style.display = "none"; g.classList.remove("hov"); };
+    g.addEventListener("mouseenter", show); g.addEventListener("focus", show); g.addEventListener("mouseleave", hide); g.addEventListener("blur", hide);
+    svg.append(g);
+  });
+  host.prepend(svg);
+}
+
+function renderChartTables(S) {
+  const sum = $("#cSum"); sum.replaceChildren();
+  const cols = ["线", "报价条数", "最低", "平均", "最高", "最新", "区间变化"];
+  sum.append(el("thead", {}, el("tr", {}, cols.map((c, i) => el("th", { cls: i ? "num" : "", text: c })))));
+  const tb = el("tbody");
+  for (const s of S) {
+    const vs = s.raw.map(cVal), lastO = s.raw.reduce((a, b) => (!a || b.d > a.d || (b.d === a.d && b.id > a.id) ? b : a), null);
+    const first = s.pts[0], last = s.pts[s.pts.length - 1];
+    const chg = first && last && s.pts.length > 1 ? (last[1] - first[1]) / first[1] : null;
+    tb.append(el("tr", {}, [
+      el("td", { title: cLineLabel(s.ln) }, [el("span", { cls: "mk", style: `background:${s.color}` }), s.label]),
+      el("td", { cls: "num", text: String(vs.length) }),
+      el("td", { cls: "num", text: vs.length ? cMoney(Math.min(...vs)) : "–" }),
+      el("td", { cls: "num", text: vs.length ? cMoney(vs.reduce((a, b) => a + b, 0) / vs.length) : "–" }),
+      el("td", { cls: "num", text: vs.length ? cMoney(Math.max(...vs)) : "–" }),
+      el("td", { cls: "num", text: lastO ? `${cMoney(cVal(lastO))}（${lastO.d.slice(5)}）` : "–" }),
+      el("td", { cls: "num" }, chg == null ? "–" : el("span", { cls: "pill " + (chg > 0.005 ? "up" : chg < -0.005 ? "down" : "flat"), text: (chg > 0 ? "▲ " : chg < 0 ? "▼ " : "") + pct(Math.abs(chg)) }))]));
+  }
+  if (!S.length) tb.append(el("tr", {}, el("td", { colspan: cols.length, cls: "empty", text: "没有线" })));
+  sum.append(tb);
+  const dt = $("#cData"); dt.replaceChildren();
+  const dates = [...new Set(S.flatMap((s) => s.pts.map(([d]) => d)))].sort().reverse();
+  dt.append(el("thead", {}, el("tr", {}, [el("th", { text: "日期" }), ...S.map((s) => el("th", { cls: "num", title: cLineLabel(s.ln) }, [el("span", { cls: "mk", style: `background:${s.color}` }), s.label]))])));
+  const db = el("tbody");
+  for (const d of dates) db.append(el("tr", {}, [el("td", { text: d }), ...S.map((s) => el("td", { cls: "num", text: cMoney(s.day.get(d)) }))]));
+  if (!dates.length) db.append(el("tr", {}, el("td", { cls: "empty", colspan: S.length + 1, text: "没有数据" })));
+  dt.append(db);
+}
+
+function cRender() {
+  cSaveLocal();
+  $("#cFrom").value = cs.from; $("#cTo").value = cs.to; $("#cMetric").value = cs.metric; $("#cAgg").value = cs.agg; $("#cPts").checked = cs.pts;
+  $("#cRange").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(!cs.from && !cs.to && +b.dataset.d === cs.days)));
+  $("#cType").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.t === cs.type)));
+  renderChartLines(); renderChartView();
+}
+function initChartTab() {
+  const seg = $("#cRange");
+  for (const [d, l] of [[7, "7 天"], [30, "30 天"], [90, "90 天"], [365, "1 年"], [0, "全部"]])
+    seg.append(el("button", { text: l, "data-d": d, onclick: () => { cs.days = d; cs.from = cs.to = ""; cRender(); } }));
+  const ty = $("#cType");
+  for (const [t, l] of [["line", "走势"], ["bar", "对比"]]) ty.append(el("button", { text: l, "data-t": t, onclick: () => { cs.type = t; cRender(); } }));
+  $("#cFrom").onchange = (e) => { cs.from = e.target.value; cRender(); };
+  $("#cTo").onchange = (e) => { cs.to = e.target.value; cRender(); };
+  $("#cMetric").onchange = (e) => { cs.metric = e.target.value; cRender(); };
+  $("#cAgg").onchange = (e) => { cs.agg = e.target.value; cRender(); };
+  $("#cPts").onchange = (e) => { cs.pts = e.target.checked; cRender(); };
+  $("#cAdd").onclick = () => { const last = cs.lines[cs.lines.length - 1]; if (cAddLine(last ? { ...last } : cDefaultLine())) cRender(); };
+  $("#cSplit").onclick = () => {
+    const i = +$("#cSplitLine").value, dim = $("#cSplitDim").value, base = cs.lines[i]; if (!base) return;
+    const pool = DATA.obs.filter((o) => cRangeOK(o) && cVal(o) != null && cMatch(o, base, dim === "grp" ? "src" : dim));
+    const cnt = new Map(); for (const o of pool) { const v = String(cField(o, dim) ?? ""); if (v) cnt.set(v, (cnt.get(v) || 0) + 1); }
+    let vals = [...cnt].sort((a, b) => b[1] - a[1]).map(([v]) => v);
+    if (vals.length < 2) return toast(`这条线在所选时间里只有 ${vals.length} 种${$("#cSplitDim").selectedOptions[0].text}，拆不开`, true);
+    const room = C_SLOTS - cs.lines.length + 1, dropped = Math.max(0, vals.length - room);
+    vals = vals.slice(0, room);
+    const keep = base.slot; cs.lines.splice(i, 1);
+    const made = vals.map((v) => ({ ...base, ...(dim === "grp" ? { src: "g:" + v } : { [dim]: v }) }));
+    made.forEach((ln, j) => { if (j === 0) { cs.lines.splice(i, 0, { ...ln, slot: keep }); } else cAddLine(ln); });
+    cRender();
+    toast(`拆成了 ${vals.length} 条线` + (dropped ? `；还有 ${dropped} 种报价少的没画（最多 ${C_SLOTS} 条线）` : ""));
+  };
+  $("#cCsv").onclick = () => {
+    const S = cSeries(), dates = [...new Set(S.flatMap((s) => s.pts.map(([d]) => d)))].sort();
+    for (const s of S) s.label = cLineLabel(s.ln);
+    const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const lines = [["日期", ...S.map((s) => s.label)].map(esc).join(",")].concat(dates.map((d) => [d, ...S.map((s) => s.day.get(d) == null ? "" : s.day.get(d).toFixed(2))].map(esc).join(",")));
+    const a = el("a", { href: URL.createObjectURL(new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" })), download: `MICA价格图表_${DATA.today}.csv` });
+    document.body.append(a); a.click(); a.remove();
+  };
+  $("#cViewSave").onclick = async () => {
+    if (!cs.lines.length) return toast("先添加线再保存", true);
+    const name = prompt("给这个图起个名字（比如「18PM 香港 vs 北美」）", $("#cViews").value || "");
+    if (!name || !name.trim()) return;
+    try { const r = await api("/api/views", { action: "save", name: name.trim(), spec: cs }); cViewsFill(r.views, name.trim()); toast("已保存，以后在「我保存的图」里打开"); }
+    catch (e) { toast(e.message, true); }
+  };
+  $("#cViews").onchange = (e) => {
+    const v = (CVIEWS || []).find((x) => x.name === e.target.value); $("#cViewDel").hidden = !v;
+    if (!v) return; Object.assign(cs, JSON.parse(JSON.stringify(v.spec))); cRender();
+  };
+  $("#cViewDel").onclick = async () => {
+    const name = $("#cViews").value; if (!name || !confirm(`删除保存的图「${name}」？`)) return;
+    try { const r = await api("/api/views", { action: "delete", name }); cViewsFill(r.views, ""); } catch (e) { toast(e.message, true); }
+  };
+  let t; window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(() => { if (!$("#tab-chart").hidden) renderChartView(); }, 150); });
+}
+let CVIEWS = [];
+function cViewsFill(views, pick) {
+  CVIEWS = views || [];
+  $("#cViews").replaceChildren(el("option", { value: "", text: CVIEWS.length ? "我保存的图…" : "还没有保存的图" }), ...CVIEWS.map((v) => el("option", { value: v.name, text: v.name })));
+  $("#cViews").value = pick || ""; $("#cViewDel").hidden = !pick;
+}
+async function loadViews() { try { cViewsFill((await api("/api/views", { action: "list" })).views, ""); } catch (e) {} }
+function chartOnData() {
+  bFill(); renderBoard();
+  if (!cs.lines.length && DATA.obs.length) cAddLine(cDefaultLine());
+  if (!$("#tab-chart").hidden) cRender();
+}
+// from the dashboard: open one spread key as three lines (North America buy / Hong Kong sell / Dubai sell)
+function openKeyInChart(key) {
+  const [model, gb, vg, , lock, grade] = key.split("|");
+  cs.lines = []; cs.type = "line"; cs.metric = "fca"; cs.agg = "avg";
+  for (const g of ["buy", "HK", "AE", "ref"]) {
+    const ln = { model, gb, vg, lock, grade, src: "g:" + g, color: "" };
+    if (DATA.obs.some((o) => cMatch(o, ln) && cRangeOK(o))) cAddLine(ln);
+  }
+  showTab("chart");
+}
+
+
+// ============================== price board (one row per model + capacity, one column per grade)
+const bs = (() => { let s = null; try { s = JSON.parse(localStorage.getItem("mica_board") || "null"); } catch (e) {}
+  return Object.assign({ days: 30, src: "", vg: "", lock: "", stat: "med", metric: "usd", q: "", pick: null }, s || {}, { pick: null }); })();
+const B_STAT = { med: "中位数", min: "最低", max: "最高", last: "最新" };
+function bSave() { try { localStorage.setItem("mica_board", JSON.stringify({ ...bs, pick: null })); } catch (e) {} }
+const bVal = (o) => bs.metric === "fca" ? o.fca : o.usd;
+const bDayStr = (n) => new Date(Date.parse(DATA.today) - n * 864e5).toISOString().slice(0, 10);
+function bMatch(o) {
+  if (bs.src) { if (bs.src.startsWith("g:") ? grpOf(o) !== bs.src.slice(2) : o.src !== bs.src) return false; }
+  if (bs.vg && (o.vg || o.region) !== bs.vg) return false;
+  if (bs.lock && o.lock !== bs.lock) return false;
+  if (bs.q) { const q = bs.q.toLowerCase().replace(/\s+/g, ""); if (!(o.model + gbLabel(o.gb)).toLowerCase().replace(/\s+/g, "").includes(q)) return false; }
+  return bVal(o) != null;
+}
+function bStat(list) {
+  if (!list.length) return null;
+  if (bs.stat === "last") return list.reduce((a, b) => (b.d > a.d || (b.d === a.d && b.id > a.id) ? b : a)).v;
+  const v = list.map((x) => x.v).sort((a, b) => a - b);
+  if (bs.stat === "min") return v[0];
+  if (bs.stat === "max") return v[v.length - 1];
+  const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+}
+function bFill() {
+  const fs = $("#bSrc"), keep = bs.src;
+  fs.replaceChildren(el("option", { value: "", text: "全部来源" }),
+    el("optgroup", { label: "按市场" }, Object.entries(GRP_CN).map(([g, n]) => el("option", { value: "g:" + g, text: n }))),
+    el("optgroup", { label: "按来源" }, Object.entries(DATA.sources).map(([c, n]) => el("option", { value: c, text: n }))));
+  fs.value = keep;
+  const vgs = [...new Set(DATA.obs.map((o) => o.vg || o.region).filter(Boolean))].sort();
+  $("#bVg").replaceChildren(el("option", { value: "", text: "全部版本" }), ...vgs.map((v) => el("option", { value: v, text: v })));
+  $("#bVg").value = bs.vg;
+}
+function renderBoard() {
+  if ($("#tab-board").hidden) return;
+  bSave();
+  $("#bRange").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.d === bs.days)));
+  $("#bStat").value = bs.stat; $("#bMetric").value = bs.metric; $("#bdLock").value = bs.lock; $("#bQ").value = bs.q;
+  const from = bs.days ? bDayStr(bs.days) : "0000", prevFrom = bs.days ? bDayStr(bs.days * 2) : null;
+  const cur = new Map(), prev = new Map(), gradesSeen = new Set();
+  for (const o of DATA.obs) {
+    if (!bMatch(o)) continue;
+    const rowK = o.model + "|" + o.gb + "|" + o.lock, item = { v: bVal(o), d: o.d, id: o.id, o };
+    if (o.d >= from) {
+      gradesSeen.add(o.grade);
+      if (!cur.has(rowK)) cur.set(rowK, { model: o.model, gen: o.gen, gb: o.gb, lock: o.lock, cells: new Map() });
+      const cells = cur.get(rowK).cells; if (!cells.has(o.grade)) cells.set(o.grade, []); cells.get(o.grade).push(item);
+    } else if (prevFrom && o.d >= prevFrom) {
+      const k = rowK + "|" + o.grade; if (!prev.has(k)) prev.set(k, []); prev.get(k).push(item);
+    }
+  }
+  const grades = GRADES.filter((g) => gradesSeen.has(g));
+  const rows = [...cur.values()].sort((a, b) => (b.gen || 0) - (a.gen || 0) || (a.model < b.model ? -1 : a.model > b.model ? 1 : 0) || a.gb - b.gb || (a.lock === "UL" ? -1 : 1));
+  const total = rows.reduce((n, r) => n + [...r.cells.values()].reduce((m, l) => m + l.length, 0), 0);
+  $("#bHint").textContent = rows.length
+    ? `${rows.length} 行 · ${total} 条报价。有锁和无锁分成两行。每格是这段时间的${B_STAT[bs.stat]}价（${bs.metric === "fca" ? "到港美元" : "美元单价"}），下面一行是最低–最高和条数；箭头是和再往前同样长一段时间相比。点一格看每一条报价。`
+    : "这些条件下没有报价。把时间放长一点，或者把来源 / 版本改成「全部」。";
+  const tbl = $("#bTbl"); tbl.replaceChildren();
+  if (!rows.length) { renderBoardDetail(); return; }
+  tbl.append(el("thead", {}, el("tr", {}, [el("th", { text: "型号" }), el("th", { text: "容量" }),
+    ...grades.map((g) => el("th", { cls: "num", text: GRADE_CN[g] || g }))])));
+  const tb = el("tbody");
+  let lastModel = null;
+  for (const r of rows) {
+    const first = r.model !== lastModel; lastModel = r.model;
+    const tr = el("tr", { cls: first ? "bfirst" : "" }, [el("td", { cls: "bmodel", text: first ? r.model : "" }),
+      el("td", {}, [gbLabel(r.gb), " ", el("span", { cls: "lockbadge " + (r.lock === "LK" ? "lk" : "ul"), text: r.lock === "LK" ? "有锁" : "无锁" })])]);
+    for (const g of grades) {
+      const list = r.cells.get(g);
+      if (!list) { tr.append(el("td", { cls: "num bempty", text: "·" })); continue; }
+      const v = bStat(list), vs = list.map((x) => x.v), lo = Math.min(...vs), hi = Math.max(...vs);
+      const pv = bStat(prev.get(r.model + "|" + r.gb + "|" + r.lock + "|" + g) || []);
+      const chg = pv ? (v - pv) / pv : null;
+      const picked = bs.pick && bs.pick.model === r.model && bs.pick.gb === r.gb && bs.pick.lock === r.lock && bs.pick.grade === g;
+      const qty = list.reduce((n, x) => n + (+x.o.qty || 0), 0);
+      tr.append(el("td", { cls: "num bcell" + (picked ? " on" : ""), tabindex: 0, role: "button",
+        title: `${r.model} ${gbLabel(r.gb)} · ${r.lock === "LK" ? "有锁" : "无锁"} · ${GRADE_CN[g] || g}\n${B_STAT[bs.stat]} ${cMoney(v)} · 最低 ${cMoney(lo)} · 最高 ${cMoney(hi)}\n${list.length} 条报价，共 ${qty} 台`,
+        onclick: () => { bs.pick = picked ? null : { model: r.model, gb: r.gb, lock: r.lock, grade: g }; renderBoard(); },
+        onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.currentTarget.click(); } } }, [
+        el("div", { cls: "bv" }, [cMoney(v), chg == null || Math.abs(chg) < 0.005 ? null : el("span", { cls: "bchg", text: (chg > 0 ? " ▲" : " ▼") + Math.abs(chg * 100).toFixed(0) + "%" })]),
+        el("div", { cls: "bs", text: (lo === hi ? "" : `${cMoney(lo)}–${cMoney(hi)} · `) + `${list.length}条` })]));
+    }
+    tb.append(tr);
+  }
+  tbl.append(tb);
+  renderBoardDetail(cur);
+}
+function renderBoardDetail(cur) {
+  const box = $("#bDetail"); box.replaceChildren();
+  const p = bs.pick, row = p && cur && cur.get(p.model + "|" + p.gb + "|" + p.lock), list = row && row.cells.get(p.grade);
+  box.hidden = !list;
+  if (!list) return;
+  const items = list.slice().sort((a, b) => a.v - b.v);
+  box.append(el("div", { cls: "toolbar" }, [
+    el("h2", { style: "margin:0", text: `${p.model} ${gbLabel(p.gb)} · ${p.lock === "LK" ? "有锁" : "无锁"} · ${GRADE_CN[p.grade] || p.grade}` }),
+    el("span", { cls: "hint", style: "margin:0", text: `${items.length} 条报价，从便宜到贵` }), el("span", { cls: "grow" }),
+    el("button", { cls: "btn", text: "在价格图表里看走势", onclick: () => boardToChart(p) }),
+    el("button", { cls: "btn", text: "关闭", onclick: () => { bs.pick = null; renderBoard(); } })]));
+  const t = el("table");
+  t.append(el("thead", {}, el("tr", {}, ["日期", "来源", "版本", "锁", "原始成色", "颜色", "数量", "原价", (bs.metric === "fca" ? "到港美元" : "美元")].map((h, i) => el("th", { cls: i >= 6 ? "num" : "", text: h })))));
+  const tb = el("tbody");
+  for (const { o, v } of items) tb.append(el("tr", {}, [el("td", { text: o.d }), el("td", { text: DATA.sources[o.src] || o.src }),
+    el("td", { text: o.version || o.region || "" }), el("td", { text: o.lock === "LK" ? "有锁" : "无锁" }), el("td", { text: o.grade_raw || "" }),
+    el("td", { text: o.color || "" }), el("td", { cls: "num", text: String(o.qty ?? "") }),
+    el("td", { cls: "num", text: `${(+o.price).toLocaleString("en-US")} ${o.cur}` }), el("td", { cls: "num", text: cMoney(v) })]));
+  t.append(tb);
+  box.append(el("div", { cls: "tablewrap scroll" }, t));
+}
+function boardToChart(p) {
+  const base = { model: p.model, gb: String(p.gb), grade: p.grade, vg: bs.vg, lock: p.lock || bs.lock, src: bs.src, color: "" };
+  cs.lines = []; cs.type = "line"; cs.metric = bs.metric; cs.days = bs.days || 0; cs.from = cs.to = ""; cs.agg = bs.stat === "last" ? "last" : bs.stat;
+  if (bs.src) cAddLine(base);
+  else {  // one line per source, most quotes first
+    const cnt = new Map(); for (const o of DATA.obs) if (cMatch(o, base) && cRangeOK(o) && cVal(o) != null) cnt.set(o.src, (cnt.get(o.src) || 0) + 1);
+    const srcs = [...cnt].sort((a, b) => b[1] - a[1]).map(([s]) => s).slice(0, C_SLOTS);
+    if (srcs.length) srcs.forEach((s) => cAddLine({ ...base, src: s })); else cAddLine(base);
+  }
+  showTab("chart");
+}
+function initBoard() {
+  const seg = $("#bRange");
+  for (const [d, l] of [[7, "7 天"], [30, "30 天"], [90, "90 天"], [0, "全部"]]) seg.append(el("button", { text: l, "data-d": d, onclick: () => { bs.days = d; renderBoard(); } }));
+  $("#bSrc").onchange = (e) => { bs.src = e.target.value; bs.pick = null; renderBoard(); };
+  $("#bVg").onchange = (e) => { bs.vg = e.target.value; bs.pick = null; renderBoard(); };
+  $("#bdLock").onchange = (e) => { bs.lock = e.target.value; bs.pick = null; renderBoard(); };
+  $("#bStat").onchange = (e) => { bs.stat = e.target.value; renderBoard(); };
+  $("#bMetric").onchange = (e) => { bs.metric = e.target.value; renderBoard(); };
+  let t; $("#bQ").oninput = (e) => { clearTimeout(t); t = setTimeout(() => { bs.q = e.target.value.trim(); bs.pick = null; renderBoard(); }, 200); };
+}
+
+
+// ============================== quick search: type "15pm 256", "17p a 美版", "16e 128 有锁" anywhere (press / )
+const QS_VER = { us: "US", "美版": "US", jp: "JP", "日版": "JP", hk: "HK", "港版": "HK", ca: "CA", "加版": "CA", cn: "CN", "国行": "CN",
+  ae: "AE", uae: "AE", "中东": "AE", eu: "EU", "欧版": "EU" };
+const QS_GRADE = { "a+": "A+", "a-": "B", ab: "B", "b+": "B", a: "A", b: "B", c: "C", d: "D", "全新": "SEALED", sealed: "SEALED", new: "SEALED", "未激活": "SEALED",
+  "激活": "ACTIVATED", "已激活": "ACTIVATED", activated: "ACTIVATED", "故障": "DEFECT", defect: "DEFECT" };
+function qsParse(raw) {
+  let q = " " + raw.toLowerCase().replace(/iphone|苹果/g, " ").replace(/\s+/g, " ") + " ";
+  const f = {};
+  const take = (re, fn) => { const m = q.match(re); if (m) { fn(m); q = q.replace(m[0], " "); } };
+  take(/(?:^|[^a-z0-9])([a-z2]{1,2})\/a(?![a-z])/, (m) => { f.vg = { ll: "US", j: "JP", zp: "HK", c: "CA", cl: "CA", ch: "CN", ae: "AE", ab: "AE" }[m[1]] || m[1].toUpperCase() + "/A"; });
+  take(/有锁|(?<![a-z])(?:lk|locked)(?![a-z])/, () => { f.lock = "LK"; });
+  take(/无锁|(?<![a-z])(?:ul|unlocked)(?![a-z])/, () => { f.lock = "UL"; });
+  take(/(?<![0-9])(64|128|256|512)\s*(?:gb|g)?(?![0-9])|(?<![0-9])([12])\s*t(?:b)?(?![a-z0-9])/, (m) => { f.gb = m[1] ? +m[1] : +m[2] * 1024; });
+  take(/(?<![a-z0-9])(?:air)(?![a-z])/, () => { f.model = "iPhone Air"; });
+  take(/(?<![a-z0-9])(?:duo|fold)(?![a-z])/, () => { f.model = "iPhone Duo"; });
+  take(/(?<![a-z0-9])se\s*3?(?![a-z0-9])/, () => { f.model = "iPhone SE 3"; });
+  if (!f.model) take(/(?<![0-9])(1[2-9])\s*(pro\s*max|promax|pmax|pm|pro|p|plus|\+|mini|max|e)?(?![a-z])/, (m) => {
+    const sfx = (m[2] || "").replace(/\s/g, "");
+    f.model = `iPhone ${m[1]}` + ({ promax: " Pro Max", pmax: " Pro Max", pm: " Pro Max", max: " Pro Max", pro: " Pro", p: " Pro", plus: " Plus", "+": " Plus", mini: " mini", e: "e" }[sfx] || "");
+  });
+  for (const [k, v] of Object.entries(QS_VER)) { const re = k.match(/^[a-z]+$/) ? new RegExp(`(?<![a-z])${k}(?![a-z])`) : new RegExp(k); if (!f.vg && re.test(q)) { f.vg = v; q = q.replace(re, " "); } }
+  for (const [k, v] of Object.entries(QS_GRADE).sort((a, b) => b[0].length - a[0].length)) {
+    const re = /^[a-z+]+$/.test(k) ? new RegExp(`(?<![a-z+])${k.replace("+", "\\+")}(?![a-z+])`) : new RegExp(k);
+    if (re.test(q)) { f.grade = v; q = q.replace(re, " "); break; }
+  }
+  f.rest = q.trim();
+  return f;
+}
+const QS_COLS = [["buy", "北美买入"], ["HK", "香港卖出"], ["AE", "迪拜卖出"], ["ref", "参考价"], ["other", "其他来源"]];
+function qsRun(raw) {
+  const panel = $("#qsPanel"); panel.replaceChildren();
+  const f = qsParse(raw);
+  if (!raw.trim()) { qsRecent(panel); return; }
+  const want = (o) => (!f.model || o.model.toLowerCase() === f.model.toLowerCase()) && (!f.gb || +o.gb === f.gb) &&
+    (!f.vg || (o.vg || o.region) === f.vg) && (!f.lock || o.lock === f.lock) && (!f.grade || o.grade === f.grade) &&
+    (!f.rest || (o.model + " " + (o.color || "") + " " + (DATA.sources[o.src] || "")).toLowerCase().includes(f.rest)) && o.usd != null;
+  const hits = DATA.obs.filter(want);
+  const chips = [f.model, f.gb && gbLabel(f.gb), f.grade && (GRADE_CN[f.grade] || f.grade), f.vg, f.lock && (f.lock === "LK" ? "有锁" : "无锁"), f.rest && `「${f.rest}」`].filter(Boolean);
+  panel.append(el("div", { cls: "qshead" }, [el("span", { cls: "hint", style: "margin:0", text: chips.length ? "理解为：" : "" }), ...chips.map((c) => el("span", { cls: "qschip", text: c })),
+    el("span", { cls: "grow" }), el("span", { cls: "hint", style: "margin:0", text: `${hits.length} 条报价` })]));
+  if (!hits.length) { panel.append(el("div", { cls: "empty", text: "没有找到。试试少写几个条件，比如只写「15pm 256」。" })); return; }
+  // one block per model + capacity, newest generations first
+  const groups = new Map();
+  for (const o of hits) { const k = o.model + "|" + o.gb + "|" + o.lock; if (!groups.has(k)) groups.set(k, { model: o.model, gen: o.gen, gb: o.gb, lock: o.lock, list: [] }); groups.get(k).list.push(o); }
+  const gs = [...groups.values()].sort((a, b) => (b.gen || 0) - (a.gen || 0) || (a.model < b.model ? -1 : 1) || a.gb - b.gb || (a.lock === "UL" ? -1 : 1));
+  const cut30 = bDayStr(30);
+  for (const g of gs.slice(0, 8)) {
+    let recent = g.list.filter((o) => o.d >= cut30), span = "最近 30 天";
+    if (!recent.length) { recent = g.list; span = "30 天内没有报价，显示全部时间"; }
+    const last = g.list.reduce((a, b) => (b.d > a.d || (b.d === a.d && b.id > a.id) ? b : a));
+    const grades = GRADES.filter((x) => recent.some((o) => o.grade === x));
+    const cols = QS_COLS.filter(([m]) => recent.some((o) => grpOf(o) === m));
+    const t = el("table", { cls: "qstbl" });
+    t.append(el("thead", {}, el("tr", {}, [el("th", { text: "成色" }), ...cols.map(([, l]) => el("th", { cls: "num", text: l }))])));
+    const tb = el("tbody");
+    for (const gr of grades) {
+      tb.append(el("tr", {}, [el("td", { text: GRADE_CN[gr] || gr }), ...cols.map(([m]) => {
+        const l = recent.filter((o) => o.grade === gr && grpOf(o) === m).map((o) => o.usd).sort((a, b) => a - b);
+        if (!l.length) return el("td", { cls: "num bempty", text: "·" });
+        const md = l.length % 2 ? l[l.length >> 1] : (l[l.length / 2 - 1] + l[l.length / 2]) / 2;
+        return el("td", { cls: "num qscell", tabindex: 0, role: "button", title: `点开看这一格的每条报价`,
+          onclick: () => qsOpenBoard(g, gr, m, f), onkeydown: (e) => { if (e.key === "Enter") qsOpenBoard(g, gr, m, f); } }, [
+          el("b", { text: cMoney(md) }), el("small", { text: l.length > 1 ? ` ${cMoney(l[0])}–${cMoney(l[l.length - 1])} · ${l.length}条` : " 1条" })]);
+      })]));
+    }
+    t.append(tb);
+    panel.append(el("div", { cls: "qsgroup" }, [
+      el("div", { cls: "qsg-h" }, [el("b", { text: `${g.model} ${gbLabel(g.gb)}` }), el("span", { cls: "lockbadge " + (g.lock === "LK" ? "lk" : "ul"), text: g.lock === "LK" ? "有锁" : "无锁" }), el("span", { cls: "hint", style: "margin:0", text: span + "，美元中位数" }), el("span", { cls: "grow" }),
+        el("span", { cls: "hint", style: "margin:0", text: `最新：${cMoney(last.usd)} · ${GRADE_CN[last.grade] || last.grade} · ${DATA.sources[last.src] || last.src} · ${last.d.slice(5)}` })]),
+      el("div", { cls: "tablewrap" }, t)]));
+  }
+  if (gs.length > 8) panel.append(el("div", { cls: "hint", style: "margin:8px 4px 0", text: `还有 ${gs.length - 8} 组没显示，多写一点条件（比如容量）缩小范围。` }));
+}
+function qsOpenBoard(g, grade, market, f) {
+  qsRemember($("#qsIn").value);
+  Object.assign(bs, { src: "g:" + market, vg: f.vg || "", lock: g.lock, q: `${g.model.replace("iPhone ", "")} ${gbLabel(g.gb)}`, days: 30 });
+  bs.pick = { model: g.model, gb: g.gb, lock: g.lock, grade };
+  qsClose(); showTab("board");
+  setTimeout(() => $("#bDetail")?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+}
+function qsRecent(panel) {
+  let r = []; try { r = JSON.parse(localStorage.getItem("mica_qs") || "[]"); } catch (e) {}
+  panel.append(el("div", { cls: "hint", style: "margin:4px 4px 8px", text: "直接打型号的简写：15pm 256、17p 512 a、16e 有锁、air 美版、18pm za/a。成色、版本、锁、容量都可以不写。" }));
+  if (r.length) panel.append(el("div", { cls: "qshead" }, [el("span", { cls: "hint", style: "margin:0", text: "最近搜过：" }),
+    ...r.map((q) => el("button", { cls: "qschip btnchip", text: q, onclick: () => { $("#qsIn").value = q; qsRun(q); $("#qsIn").focus(); } }))]));
+}
+function qsRemember(q) {
+  q = (q || "").trim(); if (!q) return;
+  try { const r = JSON.parse(localStorage.getItem("mica_qs") || "[]").filter((x) => x !== q); r.unshift(q); localStorage.setItem("mica_qs", JSON.stringify(r.slice(0, 8))); } catch (e) {}
+}
+function qsOpen() { $("#qsPanel").hidden = false; qsRun($("#qsIn").value); }
+function qsClose() { $("#qsPanel").hidden = true; }
+(function initQs() {
+  let t;
+  $("#qsIn").addEventListener("focus", qsOpen);
+  $("#qsIn").addEventListener("input", (e) => { clearTimeout(t); $("#qsPanel").hidden = false; t = setTimeout(() => qsRun(e.target.value), 120); });
+  $("#qsIn").addEventListener("keydown", (e) => { if (e.key === "Enter") qsRemember(e.target.value); if (e.key === "Escape") { qsClose(); e.target.blur(); } });
+  document.addEventListener("keydown", (e) => {
+    const typing = ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName);
+    if ((e.key === "/" && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) { e.preventDefault(); $("#qsIn").focus(); $("#qsIn").select(); }
+  });
+  document.addEventListener("mousedown", (e) => { if (!e.target.closest(".qs")) qsClose(); });
+})();
+
+// ============================== boot
+(async () => {
+  initChartTab(); initBoard();
+  if (STATIC) { try { await staticUnlock(); } catch (e) { document.body.append(el("div", { cls: "empty", text: e.message })); return; } }
+  try { await initEntry(); await reload(); loadViews(); }
+  catch (e) { toast("连接不上程序：请确认黑色窗口还开着。" + e.message, true); }
+  const h = location.hash.slice(1);
+  const allowed = ["entry", "dash", "board", "chart", "records", "settings"].filter((t) => !(ROLE === "view" && t === "entry") && !(ROLE !== "local" && t === "settings"));
+  showTab(allowed.includes(h) ? h : (DATA.obs.length || ROLE === "view" ? "dash" : "entry"));
+})();
+</script>
+</body>
+</html>
